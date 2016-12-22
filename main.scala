@@ -27,8 +27,8 @@ object Main {
     // println("\n::: Sliding Stencil :::")
     // Stencil.run()
 
-    // println("\n::: Searching methods :::")
-    // Search.run();
+    println("\n::: Begin searching tree :::")
+    TreeSearch.run();
 
     /* Running this test along with the others may result in Java GC/out of memory errors
      * If it is run by itself, with the other tests disabled, it works fine */
