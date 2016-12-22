@@ -1,0 +1,7 @@
+-J-Xms4G
+-J-Xmx4G
+-J-Xss2M
+-J-XX:+UseParallelGC
+-J-XX:MaxMetaspaceSize=1G
+-J-XX:MaxPermSize=1G
+-J-XX:+CMSClassUnloadingEnabled
