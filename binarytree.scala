@@ -1,49 +1,3 @@
-import scala.lms.common._
-import scala.collection.immutable.Queue
-import binaryTree._
-
-object TreeSearch extends IO {
-  val under = "TreeSearch" 
-
-  def run() = {
-    // List of integers
-    val nums: List[Int] = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-    val tree = Tree.fromSortedList(nums)
-    println("min: "+tree.min)
-    println("max: "+tree.max)
-    println("bfs (5): "+tree.valuesByBreadth(5))
-    println("bfs (1): "+tree.valuesByBreadth(1))
-    println("contains(5): "+tree.contains(5))
-    println("height: "+tree.height)
-    println("sum: "+tree.sum)
-    println("product: "+tree.product)
-    // val result = BinarySearch(nums, 5)   
-    // println(result)
-  }
-
-  def BinarySearch[A <% Ordered[A]](list: List[A], key: A): Option[A] = {
-    def search(l: List[A], r: List[A]): Option[A] =
-      if (l == r) None
-      else test(l, r, middle(l, r))
-
-    def test(l: List[A], r: List[A], m: List[A]): Option[A] =
-      if (key < m.head) search(l, m)
-      else if (key > m.head) search(m.tail, r)
-      else Some(m.head)
-
-    def middle(l: List[A], r: List[A]): List[A] = {
-      def race(t: List[A], h: List[A]): List[A] =
-        if (h != r && h.tail != r)
-          race(t.tail, h.tail.tail)
-        else t
-
-      race(l, l.tail)
-    }
-
-    search(list, Nil)
-  }
-}
-
 /**
  * This file is part of Scalacaster project, https://github.com/vkostyukov/scalacaster
  * and written by Vladimir Kostyukov, http://vkostyukov.ru
@@ -61,6 +15,8 @@ object TreeSearch extends IO {
  * The main idea here - is use additional node field that stores size of tree rotted
  * at this node. This allows to get the size of tree in O(1) instead of linear time.
  */
+
+package binaryTree
 
 abstract sealed class Tree[+A <% Ordered[A]] {
 
