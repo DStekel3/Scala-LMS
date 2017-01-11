@@ -1,21 +1,86 @@
 import scala.lms.common._
 
-import scala.reflect.SourceContext
 import java.io.PrintWriter
 
-trait Power1 { this: Arith =>
-  def power(b: Rep[Double], x: Int): Rep[Double] = 
-    if (x == 0) 1.0 else b * power(b, x - 1)
+// Consider a function that turns a string into a palindrome:
+//   def createPalindrome(s: String) =
+//     s + s.reverse
+// Now, we want to stage this function.
+
+// First, we change the type of parameter 's' to Rep[String].
+// Now, the + operator and reverse method are not defined for Rep[String]!
+// We will put the operations on staged strings into another trait, which
+// will be mixed in later.
+
+// We wrap our createPalindrome() function into a trait, and add a
+// 'this: PalStringOps' self-type annotation: whenever an instance of
+// CreatePalindrome is created, an instance of a concrete subclass of
+// PalStringOps that provides operations on staged strings must be
+// mixed in, too.
+// Also, 's.reverse' is changed into reverse(s) because that will be easier
+// to stage.
+trait CreatePalindrome { this: PalStringOps => 
+  def createPalindrome(s: Rep[String]) =
+    s + reverse(s)
 }
 
-trait Power2 { this: Arith =>
-  def power(b: Rep[Double], x: Int)(implicit pos: SourceContext): Rep[Double] = {
-    if (x == 0) 1.0
-    else if ((x&1) == 0) { val y = power(b, x/2); y * y }
-    else b * power(b, x - 1)
+// PalStringOps is an interface trait that defines some staged operations
+// on Rep[String]s. In particular, we define the + operator to concatenate
+// strings, and a reverse() function that returns a new string with the
+// original string's characters in reverse order. Note that the functions here
+// are abstract: they are declared, not defined.
+trait PalStringOps extends Base {
+  def infix_+(x: Rep[String], y: Rep[String]): Rep[String]
+  def reverse(s: Rep[String]): Rep[String]
+}
+
+// We need to implement these staged string operations, turning them into
+// intermediate representation (IR) nodes. These can be optimized and
+// compiled later. The BaseExp class (provided by the Scala LMS framework)
+// ensures that Rep[T] = Exp[T], so staged types (Rep) can be converted to 
+// IR expressions (Exp).
+trait PalStringExp extends PalStringOps with BaseExp {
+  // This line is required; it has to do with implicitly converting the
+  // Plus and Reverse IR nodes to Rep[String]s, so PalStringOps's type
+  // signatures are satisfied.
+  implicit def stringTyp: Typ[String] = manifestTyp
+  
+  // These are IR nodes.
+  // (Defs, to be more precise, which represent composite operations).
+  case class Plus(x: Exp[String], y: Exp[String]) extends Def[String]
+  case class Reverse(s: Exp[String]) extends Def[String]
+
+  def infix_+(x: Exp[String], y: Exp[String]) = Plus(x, y)
+  def reverse(s: Exp[String]) = Reverse(s)
+}
+
+// Now, at this point, the implementation in PalStringExp could be extended
+// with optimizations in a new 'PalStringExpOpt extends PalStringExp' trait.
+// The functions could be overridden, and using pattern matching on IR nodes,
+// the IR representation could be rewritten in a more efficient form
+// (for example, when doing arithmetic, '1.0 * x' could be simplified to 'x').
+// We do not use an optimized implementation trait for palindromes here.
+
+// Finally, we need to generate code for the new IR nodes. We create a subclass
+// of ScalaGenBase that generates code for the IR additions defined in
+// PalStringExp. We override the emitNode() function, adding new cases for
+// our IR nodes. We use the emitValDef() function here; this usage was copied
+// and adapted from the Scala LMS framework code base.
+trait ScalaGenPalString extends ScalaGenBase {
+  val IR: PalStringExp
+  import IR._
+  override def emitNode(sym: Sym[Any], node: Def[Any]) = {
+    node match {
+      case Plus(x, y) => emitValDef(sym, src"$x + $y")
+      case Reverse(s) => emitValDef(sym, src"$s.reverse")
+      case _ => super.emitNode(sym, node)
+    }
   }
 }
 
+// In order to create a code generator instance of ScalaGenBase, some functions
+// have to be defined; this ScalaGenFlat trait was copied from a tutorial and
+// appears to work fine.
 trait ScalaGenFlat extends ScalaGenBase {
    import IR._
    type Block[+T] = Exp[T]
@@ -26,143 +91,30 @@ trait ScalaGenFlat extends ScalaGenBase {
    }
 }
 
-trait BaseStr extends Base {
-  type Rep[+T] = String
-  //todo added this to provide required unit implicit conversion
-  implicit def unit[T:Typ](x: T): Rep[T] = x.toString
-
-  case class Typ[T](m: Manifest[T])
-
-  def typ[T:Typ]: Typ[T] = implicitly[Typ[T]]
-
-  implicit def unitTyp: Typ[Unit] = Typ(implicitly)
-  implicit def nullTyp: Typ[Null] = Typ(implicitly)
-}
-
-trait ArithStr extends Arith with BaseStr {
-  //todo removed below
-  //implicit def unit(x: Double) = x.toString
-
-  implicit def intTyp: Typ[Int] = Typ(implicitly)
-  implicit def doubleTyp: Typ[Double] = Typ(implicitly)
-
-  def infix_+(x: Rep[Double], y: Rep[Double])(implicit pos: SourceContext) = "(%s+%s)".format(x,y)
-  def infix_-(x: Rep[Double], y: Rep[Double])(implicit pos: SourceContext) = "(%s-%s)".format(x,y)
-  def infix_*(x: Rep[Double], y: Rep[Double])(implicit pos: SourceContext) = "(%s*%s)".format(x,y)
-  def infix_/(x: Rep[Double], y: Rep[Double])(implicit pos: SourceContext) = "(%s/%s)".format(x,y)
-}
-
-object Main extends IO {
-  val under = "Power"
-  
+object Main {
   def main(args: Array[String]): Unit = {
-    def first()
-    {
-      val o = new Power1 with ArithStr
-      import o._
+    
+    // The unstaged version of createPalindrome.
+    def createPalindromeUnstaged(s: String) =
+      s + s.reverse
 
-      val r = power(infix_+("x0","x1"),4)
-      println(r)
+    // Create a new version of CreatePalindrome (the trait containing
+    // the staged version) with the right traits mixed in.
+    val o = new CreatePalindrome with PalStringExp with CompileScala { self => 
+      val codegen = new ScalaGenFlat with ScalaGenPalString { val IR: self.type = self }
     }
-    def second()
-    {
-      val o = new Power2 with ArithStr
-      import o._
+    import o._
 
-      val r = power(infix_+("x0","x1"),4)
-      println(r)
-    }
-    def third()
-    {
-      val o = new Power1 with ArithExp
-      import o._
+    // Compile the createPalindrome() function, loading the generated code
+    // immediately into the running program. The resulting function is
+    // "unstaged" and can work on present-staged values again (i.e. Strings)
+    val createPalindromeStaged = compile(createPalindrome)
+    println(s"Un-staged: ${createPalindromeUnstaged("I Love Palindromes")}")
+    println(s"Staged: ${createPalindromeStaged("I Love Palindromes")}")
 
-      val r = power(fresh[Double] + fresh[Double],4)
-      println(globalDefs.mkString("\n"))
-      println(r)
-      val p = new ExportGraph { val IR: o.type = o }
-      p.emitDepGraph(r, prefix+"power1-dot")
-    }
-    def fourth()
-    {
-      val o = new Power1 with ArithExpOpt
-      import o._
-
-      val r = power(fresh[Double] + fresh[Double],4)
-      println(globalDefs.mkString("\n"))
-      println(r)
-      val p = new ExportGraph { val IR: o.type = o }
-      p.emitDepGraph(r, prefix+"power2-dot")
-    }
-    def fifth()
-    {
-      val o = new Power1 with ArithExpOpt
-      import o._
-      val f = (x: Rep[Double]) => power(x + x, 4)
-      val p = new ScalaGenFlat with ScalaGenArith { val IR: o.type = o }
-      p.emitSource(f, "Power2", new PrintWriter(System.out))
-    }
-    def sixth()
-    {
-      val o = new Power2 with ArithExpOpt
-      import o._
-
-      val r = power(fresh[Double] + fresh[Double],4)
-      println(globalDefs.mkString("\n"))
-      println(r)
-      val p = new ExportGraph { val IR: o.type = o }
-      p.emitDepGraph(r, prefix+"power3-dot")
-    }
-    def seventh()
-    {
-      val o = new Power2 with ArithExpOpt
-      import o._
-      val f = (x: Rep[Double]) => power(x + x, 4)
-      val p = new ScalaGenFlat with ScalaGenArith { val IR: o.type = o }
-      p.emitSource(f, "Power3", new PrintWriter(System.out))
-    }
-    def eighth()
-    {
-      val o = new Power1 with ArithExpOpt with CompileScala { self => 
-        val codegen = new ScalaGenFlat with ScalaGenArith { val IR: self.type = self }
-      }
-      import o._
-
-      val power4 = (x:Rep[Double]) => power(x,4)
-      codegen.emitSource(power4, "Power4", new PrintWriter(System.out))
-      val power4c = compile(power4)
-      println(power4c(2))
-    }
-    println("first")
-    first()
-    println("second")
-    second()
-    println("third")
-    third()
-    println("fourth")
-    fourth()
-    println("fifth")
-    fifth()
-    println("sixth")
-    sixth()
-    println("seventh")
-    seventh()
-    println("eighth")
-    eighth()
-    // trait Prog extends Base with NumericOps with PrimitiveOps with StructOps with LiftNumeric {
-    //   def test(x: Rep[Int]) = {
-    //     println("Hello world")
-    //     val a = unit(2.0)
-    //     val f1 = (1.0 + a) // this one is ok
-
-    //     val struct = new Record {  // FIXME: each of the statements below cause compiler errors ("erroneous or inaccessible type")
-    //         //val f1 = (1.0 + a):Rep[Double]
-    //         //val f1 = (1.0 + a)
-    //         //val f1 = { val z = (1.0 + a); z }
-    //         val dummy = 1.0
-    //     }
-    //   }
-    // }
+    // We can also inspect the generated code by using 'codegen.emitSource()':
+    println("Emitting generated source code...")
+    codegen.emitSource(createPalindrome, "Palindrome", new PrintWriter(System.out))
   }
 }
 
