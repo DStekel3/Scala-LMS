@@ -19,10 +19,21 @@ object Main extends IO {
       val m = pattern.length
       val q = 3355439 // a large prime
       val a = 256     // the base of the rolling hash
-      val aMax = (1 until m).foldLeft(1)((res, i) => mod(res * a, q)) // aMax = a^(m-1) % q 
+      val aMax = {    // aMax = a^(m-1) % q 
+        var res = 1
+        for (i <- 1 until m) {
+          res = mod(res * a, q)
+        }
+        res
+      }
 
-      def hash(string: String, length: Int): Int = 
-        (0 until length).foldLeft(0)((hash, i) => mod(hash * a + string(i), q)) 
+      def hash(string: String, length: Int): Int = {
+        var hash = 0
+        for (i <- 0 until length) {
+          hash = mod(hash * a + string(i), q)
+        }
+        hash
+      }
 
       def loop(textHash: Int, patternHash: Int, i: Int): Int = {
         if (textHash == patternHash) i
@@ -39,27 +50,42 @@ object Main extends IO {
       def snippet(str: Rep[String]) = {
 
         def matchRabinKarpStaged(text: Rep[String], pattern: String): Rep[Int] = {
-          val n = text.length
-          val m = pattern.length
-          val q = 3355439 // a large prime
-          val a = 256     // the base of the rolling hash
-          val aMax = (1 until m).foldLeft(1)((res, i) => mod(res * a, q)) // aMax = a^(m-1) % q 
+          val n:Rep[Int] = text.length
+          val m:Int = pattern.length
+          val q:Int = 3355439 // a large prime
+          val a:Int = 256     // the base of the rolling hash
+          val aMax:Int = {    // aMax = a^(m-1) % q 
+            var res: Int = 1
+            for (i <- 1 until m) {
+              res = mod(res * a, q)
+            }
+            res
+          }
+          def hash(string: String, length: Int): Int = {
+            var hash:Int = 0
+            for (i <- 0 until length) {
+              hash = mod(hash * a /*+ string.charAt(i)*/, q)
+            }
+            hash
+          }
 
-          def hash(string: String, length: Int): Int = 
-            (0 until length).foldLeft(0)((hash, i) => mod(hash * a + string.charAt(i), q)) 
-
-          def hashStaged(string: Rep[String], length: Int): Rep[Int] = 
-            (0 until length).foldLeft(0)((hash, i) => mod(hash * a + string.charAt(i), q)) 
+          // def hashStaged(string: Rep[String], length: Int): Rep[Int] = {
+          //   var hash = 0
+          //   for (i <- 0 until length) {
+          //     hash = mod(hash * a + string.charAt(i), q)
+          //   }
+          //   hash
+          // }
 
           def loop(textHash: Rep[Int], patternHash: Int, i: Int): Rep[Int] = {
             if (textHash == patternHash) i
             else if (i == n - m) -1
             else {
-              val tempHash = mod(textHash - mod(aMax * text.charAt(i), q), q)     // subtract old character
-              loop(mod(tempHash * a + text.charAt(i + m), q), patternHash, i + 1) // add new character and loop
+              val tempHash = mod(textHash - mod(aMax /* * text.charAt(i)*/, q), q)     // subtract old character
+              loop(mod(tempHash * a /*+ text.charAt(i + m)*/, q), patternHash, i + 1) // add new character and loop
             }
           }
-          loop(hashStaged(text, m), hash(pattern, m), 0)
+          loop(/*hashPattern(text, m)*/0, hash(pattern, m), 0)
         }
         matchRabinKarpStaged(str, predefinedPattern)
       }
