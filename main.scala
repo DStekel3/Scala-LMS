@@ -9,6 +9,8 @@ import java.io.PrintWriter
 
 // First, we change the type of parameter 's' to Rep[String].
 // Now, the + operator and reverse method are not defined for Rep[String]!
+// (The Scala LMS framework actually has pre-defined operations for
+// strings, but let's pretend we need to define custom functionality.)
 // We will put the operations on staged strings into another trait, which
 // will be mixed in later.
 
