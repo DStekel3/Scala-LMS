@@ -2,34 +2,35 @@ object Main {
   
   def main(args: Array[String]): Unit = {
 
+
+    println("\n::: Searching algorithm :::")
+    Search.run()
+    /*
     // The Getting Started tutorial - see start.scala
     // https://scala-lms.github.io/tutorials/start.html 
-    // println("\n::: Getting started :::")
-    // GettingStarted.run()
+    println("\n::: Getting started :::")
+    GettingStarted.run()
 
-    // // The Shonan HMM Challenge tutorial - see shonan.scala
-    // // https://scala-lms.github.io/tutorials/shonan.html
-    // println("\n::: Shonan HMM Challenge :::")
-    // Shonan.run()
+    // The Shonan HMM Challenge tutorial - see shonan.scala
+    // https://scala-lms.github.io/tutorials/shonan.html
+    println("\n::: Shonan HMM Challenge :::")
+    Shonan.run()
 
-    // // The Regular Expressions tutorial - see regex.scala
-    // // https://scala-lms.github.io/tutorials/regex.html
-    // println("\n::: Regular Expressions :::")
-    // Regex.run()
+    // The Regular Expressions tutorial - see regex.scala
+    // https://scala-lms.github.io/tutorials/regex.html
+    println("\n::: Regular Expressions :::")
+    Regex.run()
 
-    // // The Automata-Based Regex Matcher tutorial - see automata.scala
-    // // https://scala-lms.github.io/tutorials/automata.html
-    // println("\n::: Automata-Based Regex Matcher :::")
-    // Automata.run()
+    // The Automata-Based Regex Matcher tutorial - see automata.scala
+    // https://scala-lms.github.io/tutorials/automata.html
+    println("\n::: Automata-Based Regex Matcher :::")
+    Automata.run()
 
-    // // The Sliding Stencil tutorial - see stencil.scala
-    // // https://scala-lms.github.io/tutorials/stencil.html
-    // println("\n::: Sliding Stencil :::")
-    // Stencil.run()
-
-    // println("\n::: Searching methods :::")
-    // Search.run();
-
+    // The Sliding Stencil tutorial - see stencil.scala
+    // https://scala-lms.github.io/tutorials/stencil.html
+    println("\n::: Sliding Stencil :::")
+    Stencil.run()
+    */
     /* Running this test along with the others may result in Java GC/out of memory errors
      * If it is run by itself, with the other tests disabled, it works fine */
     // The Ackermann's Function tutorial - see ack.scala
@@ -49,5 +50,6 @@ object Main {
      * It is completely broken
 
      */
+     
   }
 }
