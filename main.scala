@@ -48,15 +48,15 @@ object Main extends IO {
         if (textHash == patternHash) i
         else if (i == n - m) -1
         else {
-          val tempHash = mod(textHash - mod(aMax * text(i), q), q)     // subtract old character
-          val newHash = mod(tempHash * a + text(i + m), q)
+          val tempHash = mod(textHash - mod(aMax * text(i), q), q) // subtract old character
+          val newHash = mod(tempHash * a + text(i + m), q)         // add new character
           
-          println(s"${i + 1}: ${newHash}")
-          loop(newHash, patternHash, i + 1) // add new character and loop
+          //println(s"${i + 1}: ${newHash}")
+          loop(newHash, patternHash, i + 1)
         }
       }
-      println(s">: ${hash(pattern, m)}")
-      println(s"0: ${hash(text, m)}")
+      //println(s">: ${hash(pattern, m)}")
+      //println(s"0: ${hash(text, m)}")
       loop(hash(text, m), hash(pattern, m), 0)
     }
 
@@ -107,76 +107,42 @@ object Main extends IO {
             hash
           }
 
-          def loop(patternHash: Int, i: Int): Rep[Int => Int] = { (textHash: Rep[Int]) =>
-            generate_comment("loop_" + i) // to navigate the generated code
-            /* DEBUG: loops correctly, does nothing */
-            if (i < 10) {
-              println(i)
-              loop(patternHash, i + 1)(0)
-            }
-            unit(0)
-            /* END DEBUG */
-            // if (textHash == patternHash) i
-            // else if (i == n - m) -1
-            // else {
-            //   val tempHash = modStaged(textHash - modStaged(aMax * text.charAt(i), q), q) // subtract old character
-            //   val newHash = modStaged(tempHash * a + text.charAt(i + m), q)
+          def loop(patternHash: Int): Rep[((Int, Int)) => Int] = { (i: Rep[Int], textHash: Rep[Int]) =>
+            if (textHash == patternHash) i
+            else if (i == n - m) -1
+            else {
+              val tempHash = modStaged(textHash - modStaged(aMax * text.charAt(i), q), q) // subtract old character
+              val newHash = modStaged(tempHash * a + text.charAt(i + m), q)               // add new character
               
-            //   println((i + 1) + ": " + newHash)
-            //   loop(patternHash, i + i)(newHash)
-            //   //loop(patternHash, i + 1)(modStaged(tempHash * a + text.charAt(i + m), q))   // add new character and loop
-            // }
+              //println((i + 1) + ": " + newHash)
+              loop(patternHash)(i + 1, newHash)
+            }
           }
-          println(">: " + hash(pattern, m))
-          println("0: " + hashStaged(text, m))
+          //println(">: " + hash(pattern, m))
+          //println("0: " + hashStaged(text, m))
 
-          loop(hash(pattern, m), 0)(hashStaged(text, m))
-
-          //   if (textHash == patternHash) i
-          //   else if (i == n - m) -1
-          //   else {
-          //     val tempHash = modStaged(textHash - modStaged(aMax * text.charAt(i), q), q)     // subtract old character
-          //     loop(modStaged(tempHash * a + text.charAt(i + m), q), patternHash, i + 1) // add new character and loop
-          //   }
-          // }
-          // loop(hashStaged(text, m), hash(pattern, m), 0)
-
-
-          // def loop(textHash: Rep[Int], patternHash: Int, i: Int): Rep[Int] = {
-          //   if (textHash == patternHash) i
-          //   else if (i == n - m) -1
-          //   else {
-          //     val tempHash = modStaged(textHash - modStaged(aMax * text.charAt(i), q), q)     // subtract old character
-          //     loop(modStaged(tempHash * a + text.charAt(i + m), q), patternHash, i + 1) // add new character and loop
-          //   }
-          // }
-          // loop(hashStaged(text, m), hash(pattern, m), 0)
+          loop(hash(pattern, m))(0, hashStaged(text, m))
         }
         matchRabinKarpStaged(str, predefinedPattern)
       }
     }
+
     def matchRabinKarpStaged(text: String): Int = {
-      println("===")
-      exec("-1", snippet.code)
       snippet.eval(text)
     }
 
+    println("Generating code snippet in /out/"+under+"-1.actual.scala")
+    exec("-1", snippet.code)
+    
     val patterns = List(
-      "abcScalalang"
-      // "Javalang",
-      // "classic guitar",
-      // "AbstractSingletonProxyFactoryBean",
-      // "Sincewe",
-      // "imperative setting.",
-      // "perative setting!"
+      "The pattern is Scala",
+      "scalasCALAScala",
+      "This string does not contain the pattern",
+      "This one, however, does: Scala!"
     )
     
-    println("Unstaged:")
     val unstagedSearchResults = patterns.map(string => matchRabinKarp(string, predefinedPattern))
-    
-    println("Staged:")
     val patternSearchResults = patterns.map(string => matchRabinKarpStaged(string))
-    //val patternSearchResults = patterns.map(string => simpleSnippet.eval(predefinedString))
     
     val combinedUnstagedSearchResults = patterns zip unstagedSearchResults
     val combinedPatternSearchResults = patterns zip patternSearchResults
@@ -185,7 +151,7 @@ object Main extends IO {
     for ((string, result) <- combinedUnstagedSearchResults) {
       println(s"$string -> $result")
     }
-    println("Staged:")
+    println("\nStaged:")
     for ((string, result) <- combinedPatternSearchResults) {
       println(s"$string -> $result")
     }
