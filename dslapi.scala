@@ -40,6 +40,7 @@ trait CGenUtilOps extends CGenBase {
 
 trait Dsl extends PrimitiveOps with NumericOps with BooleanOps with LiftString with LiftPrimitives with LiftNumeric with LiftBoolean with IfThenElse with Equal with RangeOps with OrderingOps with MiscOps with ArrayOps with StringOps with SeqOps with Functions with While with StaticData with Variables with LiftVariables with ObjectOps with UtilOps
 /* --- Add new operations here --- */
+with TupledFunctions
 with CharOps
 /* ------------------------------- */ 
 {
@@ -52,6 +53,7 @@ with CharOps
 
 trait DslExp extends Dsl with PrimitiveOpsExpOpt with NumericOpsExpOpt with BooleanOpsExp with IfThenElseExpOpt with EqualExpBridgeOpt with RangeOpsExp with OrderingOpsExp with MiscOpsExp with EffectExp with ArrayOpsExpOpt with StringOpsExp with SeqOpsExp with FunctionsRecursiveExp with WhileExp with StaticDataExp with VariablesExpOpt with ObjectOpsExpOpt with UtilOpsExp
 /* --- Add new operations here --- */
+with TupledFunctionsRecursiveExp
 with CharExp
 /* ------------------------------- */ 
 {
@@ -97,6 +99,7 @@ trait DslGen extends ScalaGenNumericOps
     with ScalaGenObjectOps
     with ScalaGenUtilOps
 /* --- Add new operations here --- */
+    with ScalaGenTupledFunctions
     with ScalaGenCharOps
 /* ------------------------------- */ 
 {

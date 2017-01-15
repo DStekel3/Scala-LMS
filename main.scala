@@ -5,7 +5,9 @@ object Main extends IO {
 
   
   val predefinedPattern = "Scala"
-  val predefinedString = "Since Fender Stratocaster is a classic guitar, Scalacaster is about classic algorithms and data structures in Scala. Scalacaster includes loads of widely used implementation techniques and approaches, which have been developed by best programmers and enthusiasts of functional programming. Studying purely functional data structures is always fun and challenge for researchers, since data structures in a functional setting are much elegant and smarter than in an imperative setting."
+  //val predefinedString = "Since Fender Stratocaster is a classic guitar, Scalacaster is about classic algorithms and data structures in Scala. Scalacaster includes loads of widely used implementation techniques and approaches, which have been developed by best programmers and enthusiasts of functional programming. Studying purely functional data structures is always fun and challenge for researchers, since data structures in a functional setting are much elegant and smarter than in an imperative setting."
+
+  val predefinedString = "Banana"
 
   def main(args: Array[String]): Unit = {
     /**
@@ -47,93 +49,146 @@ object Main extends IO {
         else if (i == n - m) -1
         else {
           val tempHash = mod(textHash - mod(aMax * text(i), q), q)     // subtract old character
-          loop(mod(tempHash * a + text(i + m), q), patternHash, i + 1) // add new character and loop
+          val newHash = mod(tempHash * a + text(i + m), q)
+          
+          println(s"${i + 1}: ${newHash}")
+          loop(newHash, patternHash, i + 1) // add new character and loop
         }
       }
+      println(s">: ${hash(pattern, m)}")
+      println(s"0: ${hash(text, m)}")
       loop(hash(text, m), hash(pattern, m), 0)
     }
 
-    // var snippet = new DslDriver[String,Int] {
-    //   def snippet(str: Rep[String]) = {
+    var snippet = new DslDriver[String,Int] {
+      def snippet(str: Rep[String]) = {
 
-    //     def matchRabinKarpStaged(text: Rep[String], pattern: String): Rep[Int] = {
-    //       // Scala's % operator can return negative numbers;
-    //       // the mod() function guarantees nonnegative results
-    //       def mod(x: Rep[Int], y: Int): Rep[Int] = {
-    //         var res: Rep[Int] = x % y
-    //         if (x < 0)
-    //           res += y
-    //         res
-    //       }
+        def matchRabinKarpStaged(text: Rep[String], pattern: String): Rep[Int] = {
+          // Scala's % operator can return negative numbers;
+          // the mod() function guarantees nonnegative results
+          import Math.{floorMod => mod}
 
-    //       val n: Rep[Int] = text.length
-    //       val m: Int = pattern.length
-    //       val q: Int = 3355439 // a large prime
-    //       val a: Int = 256     // the base of the rolling hash
-    //       val aMax: Int = {    // aMax = a^(m-1) % q 
-    //         var res: Int = 1
-    //         for (i <- 1 until m) {
-    //           res = mod(res * a, q)
-    //         }
-    //         res
-    //       }
+          def modStaged(x: Rep[Int], y: Int): Rep[Int] = {
+            val temp = x % y
+            val res = if (temp < 0) {
+              temp + y
+            }
+            else {
+              temp
+            }
+            res
+          }
 
-    //       def hash(string: String, length: Int): Int = {
-    //         var hash:Int = 0
-    //         for (i <- 0 until length) {
-    //           hash = mod(hash * a + string.charAt(i), q)
-    //         }
-    //         hash
-    //       }
+          val n: Rep[Int] = text.length
+          val m: Int = pattern.length
+          val q: Int = 3355439 // a large prime
+          val a: Int = 256     // the base of the rolling hash
+          val aMax: Int = {    // aMax = a^(m-1) % q 
+            var res: Int = 1
+            for (i <- (1 until m): Range) {
+              res = mod(res * a, q)
+            }
+            res
+          }
 
-    //       // def hashStaged(string: Rep[String], length: Int): Rep[Int] = {
-    //       //   var hash = 0
-    //       //   for (i <- 0 until length) {
-    //       //     hash = mod(hash * a + string.charAt(i), q)
-    //       //   }
-    //       //   hash
-    //       // }
+          def hash(string: String, length: Int): Int = {
+            var hash: Int = 0
+            for (i <- (0 until length): Range) {
+              hash = mod(hash * a + string.charAt(i), q)
+            }
+            hash
+          }
 
-    //       def loop(textHash: Rep[Int], patternHash: Int, i: Int): Rep[Int] = {
-    //         if (textHash == patternHash) i
-    //         else if (i == n - m) -1
-    //         else {
-    //           val tempHash = mod(textHash - mod(aMax /* * text.charAt(i)*/, q), q)     // subtract old character
-    //           loop(mod(tempHash * a /*+ text.charAt(i + m)*/, q), patternHash, i + 1) // add new character and loop
-    //         }
-    //       }
-    //       loop(/*hashPattern(text, m)*/0, hash(pattern, m), 0)
-    //     }
-    //     matchRabinKarpStaged(str, predefinedPattern)
-    //   }
-    // }
+          def hashStaged(string: Rep[String], length: Int): Rep[Int] = {
+            var hash: Rep[Int] = unit(0)
+            for (i <- (0 until length): Range) {
+              hash = modStaged(hash * a + string.charAt(i), q)
+            }
+            hash
+          }
 
-    var simpleSnippet = new DslDriver[Char,Int] {
-      def snippet(c: Rep[Char]) = {
-        val someInteger: Int = 10
-        c + someInteger + c
+          def loop(patternHash: Int, i: Int): Rep[Int => Int] = { (textHash: Rep[Int]) =>
+            generate_comment("loop_" + i) // to navigate the generated code
+            /* DEBUG: loops correctly, does nothing */
+            if (i < 10) {
+              println(i)
+              loop(patternHash, i + 1)(0)
+            }
+            unit(0)
+            /* END DEBUG */
+            // if (textHash == patternHash) i
+            // else if (i == n - m) -1
+            // else {
+            //   val tempHash = modStaged(textHash - modStaged(aMax * text.charAt(i), q), q) // subtract old character
+            //   val newHash = modStaged(tempHash * a + text.charAt(i + m), q)
+              
+            //   println((i + 1) + ": " + newHash)
+            //   loop(patternHash, i + i)(newHash)
+            //   //loop(patternHash, i + 1)(modStaged(tempHash * a + text.charAt(i + m), q))   // add new character and loop
+            // }
+          }
+          println(">: " + hash(pattern, m))
+          println("0: " + hashStaged(text, m))
+
+          loop(hash(pattern, m), 0)(hashStaged(text, m))
+
+          //   if (textHash == patternHash) i
+          //   else if (i == n - m) -1
+          //   else {
+          //     val tempHash = modStaged(textHash - modStaged(aMax * text.charAt(i), q), q)     // subtract old character
+          //     loop(modStaged(tempHash * a + text.charAt(i + m), q), patternHash, i + 1) // add new character and loop
+          //   }
+          // }
+          // loop(hashStaged(text, m), hash(pattern, m), 0)
+
+
+          // def loop(textHash: Rep[Int], patternHash: Int, i: Int): Rep[Int] = {
+          //   if (textHash == patternHash) i
+          //   else if (i == n - m) -1
+          //   else {
+          //     val tempHash = modStaged(textHash - modStaged(aMax * text.charAt(i), q), q)     // subtract old character
+          //     loop(modStaged(tempHash * a + text.charAt(i + m), q), patternHash, i + 1) // add new character and loop
+          //   }
+          // }
+          // loop(hashStaged(text, m), hash(pattern, m), 0)
+        }
+        matchRabinKarpStaged(str, predefinedPattern)
       }
     }
-
-    println(simpleSnippet.eval('A'))
+    def matchRabinKarpStaged(text: String): Int = {
+      println("===")
+      exec("-1", snippet.code)
+      snippet.eval(text)
+    }
 
     val patterns = List(
-      "Scala",
-      "Java",
-      "classic guitar",
-      "AbstractSingletonProxyFactoryBean",
-      "Since",
-      "imperative setting.",
-      "perative setting!"
+      "abcScalalang"
+      // "Javalang",
+      // "classic guitar",
+      // "AbstractSingletonProxyFactoryBean",
+      // "Sincewe",
+      // "imperative setting.",
+      // "perative setting!"
     )
-
-    //val patternSearchResults = patterns.map(string => matchRabinKarp(predefinedString, string))
+    
+    println("Unstaged:")
+    val unstagedSearchResults = patterns.map(string => matchRabinKarp(string, predefinedPattern))
+    
+    println("Staged:")
+    val patternSearchResults = patterns.map(string => matchRabinKarpStaged(string))
     //val patternSearchResults = patterns.map(string => simpleSnippet.eval(predefinedString))
+    
+    val combinedUnstagedSearchResults = patterns zip unstagedSearchResults
+    val combinedPatternSearchResults = patterns zip patternSearchResults
 
-    // val combinedPatternSearchResults = patterns zip patternSearchResults
-    // for ((string, result) <- combinedPatternSearchResults) {
-    //   println(s"$string -> $result")
-    // }
+    println("Unstaged:")
+    for ((string, result) <- combinedUnstagedSearchResults) {
+      println(s"$string -> $result")
+    }
+    println("Staged:")
+    for ((string, result) <- combinedPatternSearchResults) {
+      println(s"$string -> $result")
+    }
   }
 }
 
