@@ -1,8 +1,22 @@
 import scala.lms.common._
 
+trait FoldableRanges extends Dsl {
+  implicit def foldableRange(range: Rep[Range]): FoldableRange = new FoldableRange(range)
+
+  class FoldableRange(range: Rep[Range]) {
+    def foldLeft(startValue: Rep[Int])(func: (Rep[Int], Rep[Int]) => Rep[Int]): Rep[Int] = {
+      var result: Var[Int] = startValue
+      for (i <- range.start until range.end) {
+        result = func(result, i)
+      }
+      result
+    }
+  }
+}
+
 trait UnstagedRabinKarp {
   /**
-    * Checks whether the pattern 'p' is substring of 's' with Rabin-Karp algorithm.
+    * Checks whether the pattern 'pattern' is substring of 'text' with Rabin-Karp algorithm.
     * If it maches then the function returns the start index, else returns -1.
     * 
     * http://www.geeksforgeeks.org/searching-for-patterns-set-3-rabin-karp-algorithm/
@@ -12,7 +26,7 @@ trait UnstagedRabinKarp {
     */
   def matchRabinKarp(text: String, pattern: String): Int = {
     // Scala's % operator can return negative numbers;
-    // the floorMod() function guarantees nonnegative results
+    // the floorMod() function (imported as mod()) guarantees nonnegative results
     import Math.{floorMod => mod}
 
     val n = text.length
@@ -37,18 +51,15 @@ trait UnstagedRabinKarp {
   }
 }
 
-trait StagedRabinKarp extends Dsl {
+trait StagedRabinKarp extends Dsl with FoldableRanges {
   // Scala's % operator can return negative numbers;
-  // the mod() function guarantees nonnegative results
+  // the mod() functions guarantee nonnegative results
   def mod(x: Int, y: Int): Int = Math.floorMod(x, y)
 
   def mod(x: Rep[Int], y: Int): Rep[Int] = {
-    val temp = x % y
-    val res = if (temp < 0) {
-      temp + y
-    }
-    else {
-      temp
+    var res: Var[Int] = x % y
+    if (res < 0) {
+      res += y
     }
     res
   }
@@ -58,43 +69,23 @@ trait StagedRabinKarp extends Dsl {
     val m: Int = pattern.length
     val q: Int = 3355439 // a large prime
     val a: Int = 256     // the base of the rolling hash
-    val aMax: Int = {    // aMax = a^(m-1) % q 
-      var res: Int = 1
-      for (i <- (1 until m): Range) {
-        res = mod(res * a, q)
-      }
-      res
-    }
+    val aMax: Int = ((1 until m): Range).foldLeft(1)((res, i) => mod(res * a, q)) // aMax = a^(m-1) % q
 
-    def hash(string: String, length: Int): Int = {
-      var hash: Int = 0
-      for (i <- (0 until length): Range) {
-        hash = mod(hash * a + string.charAt(i), q)
-      }
-      hash
-    }
+    def hash(string: String, length: Int): Int = 
+      ((0 until length): Range).foldLeft(0)((hash, i) => mod(hash * a + string(i), q))
 
-    def hashStaged(string: Rep[String], length: Int): Rep[Int] = {
-      var hash: Rep[Int] = unit(0)
-      for (i <- (0 until length): Range) {
-        hash = mod(hash * a + string.charAt(i), q)
-      }
-      hash
-    }
+    def hashStaged(string: Rep[String], length: Int): Rep[Int] = 
+      ((0 until length): Rep[Range]).foldLeft(0)((hash, i) => mod(hash * a + string(i), q))
 
     def loop(patternHash: Int): Rep[((Int, Int)) => Int] = { (i: Rep[Int], textHash: Rep[Int]) =>
       if (textHash == patternHash) i
       else if (i == n - m) -1
       else {
         val tempHash = mod(textHash - mod(aMax * text.charAt(i), q), q) // subtract old character
-        val newHash = mod(tempHash * a + text.charAt(i + m), q)               // add new character
-        
-        //println((i + 1) + ": " + newHash)
+        val newHash = mod(tempHash * a + text.charAt(i + m), q)         // add new character
         loop(patternHash)(i + 1, newHash)
       }
     }
-    //println(">: " + hash(pattern, m))
-    //println("0: " + hashStaged(text, m))
     loop(hash(pattern, m))(0, hashStaged(text, m))
   }
 }
@@ -114,7 +105,6 @@ object Main extends IO with UnstagedRabinKarp {
   }
 
   def main(args: Array[String]): Unit = {
-
     println("Generating code snippet in /out/"+under+"-1.actual.scala")
     exec("-1", snippet.code)
     
