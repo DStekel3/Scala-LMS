@@ -2,7 +2,6 @@ import scala.lms.common._
 
 trait CharOps extends Base with PrimitiveOps {
   implicit def repCharToRepInt(x: Rep[Char]): Rep[Int] = x.toInt
-  //def infix_+(x: Rep[Int], y: Rep[Char]): Rep[Int] = int_plus(x, repCharToRepInt(y))
 
   implicit def charToCharOps(c: Char): CharOpsCls = new CharOpsCls(unit(c))
   implicit def repCharToCharOps(c: Rep[Char]): CharOpsCls = new CharOpsCls(c)
