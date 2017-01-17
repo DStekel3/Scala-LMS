@@ -19,21 +19,28 @@ import java.io.PrintWriter
 // CreatePalindrome is created, an instance of a concrete subclass of
 // PalStringOps that provides operations on staged strings must be
 // mixed in, too.
-// Also, 's.reverse' is changed into reverse(s) because that will be easier
-// to stage.
 trait CreatePalindrome { this: PalStringOps => 
   def createPalindrome(s: Rep[String]) =
-    s + reverse(s)
+    s + s.reverse
 }
 
 // PalStringOps is an interface trait that defines some staged operations
 // on Rep[String]s. In particular, we define the + operator to concatenate
-// strings, and a reverse() function that returns a new string with the
+// strings, and a reverse method that returns a new string with the
 // original string's characters in reverse order. Note that the functions here
 // are abstract: they are declared, not defined.
 trait PalStringOps extends Base {
+  // In order to extend the Rep[String] class with a new reverse method,
+  // we define a new ReversibleString class that has the method.
+  class ReversibleString(str: Rep[String]) {
+    def reverse: Rep[String] = reverse_string(str)
+  }
+  // Rep[String]s can be implicitly converted to ReversibleString when required
+  // (this effectively means we can now call reverse on Rep[String]s).
+  implicit def repStrToRevStr(str: Rep[String]): ReversibleString = new ReversibleString(str)
+
   def infix_+(x: Rep[String], y: Rep[String]): Rep[String]
-  def reverse(s: Rep[String]): Rep[String]
+  def reverse_string(s: Rep[String]): Rep[String]
 }
 
 // We need to implement these staged string operations, turning them into
@@ -53,7 +60,7 @@ trait PalStringExp extends PalStringOps with BaseExp {
   case class Reverse(s: Exp[String]) extends Def[String]
 
   def infix_+(x: Exp[String], y: Exp[String]) = Plus(x, y)
-  def reverse(s: Exp[String]) = Reverse(s)
+  def reverse_string(s: Exp[String]) = Reverse(s)
 }
 
 // Now, at this point, the implementation in PalStringExp could be extended
