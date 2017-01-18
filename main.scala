@@ -16,29 +16,13 @@ trait FoldableRanges extends Dsl {
 }
 
 // Scala's % operator can return negative numbers;
-// the %% operator guarantees nonnegative results
-object FloorModInts {
-  implicit class FloorModInt(val i: Int) extends AnyVal {
-    def %%(that: Int) = Math.floorMod(this.i, that)
-  }
+// the %% operator guarantees nonnegative results.
+// See IntOps.scala for a version that works on staged ints.
+trait FloorMod {
+  def infix_%%(x: Int, y: Int): Int = Math.floorMod(x, y)
 }
 
-// Scala's % operator can return negative numbers;
-// the %% operator guarantees nonnegative results
-trait FloorModRepInts extends Dsl {
-  implicit class FloorModRepInt(val i: Rep[Int]) {
-    def %%(that: Int) = {
-      var res: Var[Int] = this.i % that
-      if (res < 0) {
-        res += that
-      }
-      res
-    }
-  }
-}
-
-trait UnstagedRabinKarp {
-    import FloorModInts._
+trait UnstagedRabinKarp extends FloorMod {
   /**
     * Checks whether the pattern 'pattern' is substring of 'text' with Rabin-Karp algorithm.
     * If it maches then the function returns the start index, else returns -1.
@@ -71,9 +55,7 @@ trait UnstagedRabinKarp {
   }
 }
 
-trait StagedRabinKarp extends Dsl with FoldableRanges with FloorModRepInts {
-  import FloorModInts._
-
+trait StagedRabinKarp extends Dsl with FoldableRanges with FloorMod {
   def matchRabinKarp(text: Rep[String], pattern: String): Rep[Int] = {
     val n: Rep[Int] = text.length
     val m: Int = pattern.length

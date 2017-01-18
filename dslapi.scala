@@ -42,6 +42,7 @@ trait Dsl extends PrimitiveOps with NumericOps with BooleanOps with LiftString w
 /* --- Add new operations here --- */
 with TupledFunctions
 with CharOps
+with IntOps
 /* ------------------------------- */ 
 {
   implicit def repStrToSeqOps(a: Rep[String]) = new SeqOpsCls(a.asInstanceOf[Rep[Seq[Char]]])
@@ -55,6 +56,7 @@ trait DslExp extends Dsl with PrimitiveOpsExpOpt with NumericOpsExpOpt with Bool
 /* --- Add new operations here --- */
 with TupledFunctionsRecursiveExp
 with CharExp
+with IntExp
 /* ------------------------------- */ 
 {
   override def boolean_or(lhs: Exp[Boolean], rhs: Exp[Boolean])(implicit pos: SourceContext) : Exp[Boolean] = lhs match {
@@ -101,6 +103,7 @@ trait DslGen extends ScalaGenNumericOps
 /* --- Add new operations here --- */
     with ScalaGenTupledFunctions
     with ScalaGenCharOps
+    with ScalaGenIntOps
 /* ------------------------------- */ 
 {
   val IR: DslExp
