@@ -10,6 +10,20 @@ object TreeSearch extends IO {
     val nums: List[Int] = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
     val tree = MyTree.fromSortedList(nums)
     println("contains(5): "+tree.contains(5))
+    firstSnippet()
+  }
+
+  def firstSnippet() = {
+    println("Generating first code snippet in /out/"+under+"-1.actual.scala")
+    val snippet = new DslDriver[Int,Int] {
+      def snippet(x: Rep[Int]) = {
+        // val nums: List[Int] = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        // val tree = MyTree.fromSortedList(nums)
+        true
+      }
+    }
+    assert(snippet.eval(5) == true)
+    exec("-69", snippet.code)
   }
 }
 
@@ -32,7 +46,6 @@ object TreeSearch extends IO {
  */
 
 abstract sealed class MyTree {
-
   /**
    * The value of this tree.
    */

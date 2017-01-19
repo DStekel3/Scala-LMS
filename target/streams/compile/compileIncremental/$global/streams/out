@@ -17,7 +17,7 @@
 [0m[[0minfo[0m] [0mCompiling 1 Scala source to C:\Users\Danii\Documents\LMS\target\scala-2.11\classes...[0m
 [0m[[0mdebug[0m] [0mGetting org.scala-sbt:compiler-interface:0.13.13:component from component compiler for Scala 2.11.2[0m
 [0m[[0mdebug[0m] [0mGetting org.scala-sbt:compiler-interface:0.13.13:component from component compiler for Scala 2.11.2[0m
-[0m[[0mdebug[0m] [0mRunning cached compiler 251d60f9, interfacing (CompilerInterface) with Scala compiler version 2.11.2[0m
+[0m[[0mdebug[0m] [0mRunning cached compiler 5d399aeb, interfacing (CompilerInterface) with Scala compiler version 2.11.2[0m
 [0m[[0mdebug[0m] [0mCalling Scala compiler with arguments  (CompilerInterface):[0m
 [0m[[0mdebug[0m] [0m	-Yvirtualize[0m
 [0m[[0mdebug[0m] [0m	-deprecation[0m
@@ -25,37 +25,12 @@
 [0m[[0mdebug[0m] [0m	C:\Program Files\Java\jre1.8.0_111\lib\resources.jar;C:\Program Files\Java\jre1.8.0_111\lib\rt.jar;C:\Program Files\Java\jre1.8.0_111\lib\sunrsasign.jar;C:\Program Files\Java\jre1.8.0_111\lib\jsse.jar;C:\Program Files\Java\jre1.8.0_111\lib\jce.jar;C:\Program Files\Java\jre1.8.0_111\lib\charsets.jar;C:\Program Files\Java\jre1.8.0_111\lib\jfr.jar;C:\Program Files\Java\jre1.8.0_111\classes;C:\Users\Danii\.ivy2\cache\org.scala-lang.virtualized\scala-library\jars\scala-library-2.11.2.jar[0m
 [0m[[0mdebug[0m] [0m	-classpath[0m
 [0m[[0mdebug[0m] [0m	C:\Users\Danii\Documents\LMS\target\scala-2.11\classes;C:\Users\Danii\.ivy2\cache\org.scala-lang.virtualized\scala-compiler\jars\scala-compiler-2.11.2.jar;C:\Users\Danii\.ivy2\cache\org.scala-lang.virtualized\scala-reflect\jars\scala-reflect-2.11.2.jar;C:\Users\Danii\.ivy2\cache\org.scala-lang.modules\scala-xml_2.11\bundles\scala-xml_2.11-1.0.2.jar;C:\Users\Danii\.ivy2\cache\org.scala-lang.modules\scala-parser-combinators_2.11\bundles\scala-parser-combinators_2.11-1.0.1.jar;C:\Users\Danii\.ivy2\cache\org.scala-lang.lms\lms-core_2.11\jars\lms-core_2.11-1.0.0-SNAPSHOT.jar;C:\Users\Danii\.ivy2\cache\org.scala-lang.plugins\scala-continuations-library_2.11\bundles\scala-continuations-library_2.11-1.0.2.jar;C:\Users\Danii\.ivy2\cache\org.scalatest\scalatest_2.11\bundles\scalatest_2.11-2.2.2.jar[0m
-[0m[[0mdebug[0m] [0mScala compilation took 4.747234131 s[0m
-[0m[[0mdebug[0m] [0m[naha] Invalidating C:\Users\Danii\Documents\LMS\treesearch.scala...[0m
-[0m[[0mdebug[0m] [0m[naha] Invalidating (transitively) by inheritance from C:\Users\Danii\Documents\LMS\treesearch.scala...[0m
-[0m[[0mdebug[0m] [0m[naha] Initial set of included nodes: Set(C:\Users\Danii\Documents\LMS\treesearch.scala)[0m
-[0m[[0mdebug[0m] [0m[naha] Invalidated by transitive inheritance dependency: Set(C:\Users\Danii\Documents\LMS\treesearch.scala)[0m
-[0m[[0mdebug[0m] [0m[naha] The C:\Users\Danii\Documents\LMS\treesearch.scala source file has the following regular definitions changed:[0m
-[0m[[0mdebug[0m] [0m[naha] 	BinarySearch, fromSortedList, <init>, copy, make, contains, add.[0m
-[0m[[0mdebug[0m] [0m[naha] All member reference dependencies will be considered within this context.[0m
-[0m[[0mdebug[0m] [0m[naha] The following modified names cause invalidation of C:\Users\Danii\Documents\LMS\main.scala: Set(<init>)[0m
-[0m[[0mdebug[0m] [0m[naha] New invalidations:[0m
-[0m[[0mdebug[0m] [0m[naha] 	Set(C:\Users\Danii\Documents\LMS\main.scala)[0m
-[0m[[0mdebug[0m] [0m[naha] Initial set of included nodes: Set(C:\Users\Danii\Documents\LMS\main.scala)[0m
-[0m[[0mdebug[0m] [0m[naha] Previously invalidated, but (transitively) depend on new invalidations:[0m
-[0m[[0mdebug[0m] [0m[naha] 	Set()[0m
-[0m[[0mdebug[0m] [0m[naha] All newly invalidated sources after taking into account (previously) recompiled sources:Set(C:\Users\Danii\Documents\LMS\main.scala)[0m
-[0m[[0mdebug[0m] [0m[naha] Initial set of included nodes: Set(C:\Users\Danii\Documents\LMS\main.scala)[0m
-[0m[[0minfo[0m] [0mCompiling 1 Scala source to C:\Users\Danii\Documents\LMS\target\scala-2.11\classes...[0m
-[0m[[0mdebug[0m] [0mGetting org.scala-sbt:compiler-interface:0.13.13:component from component compiler for Scala 2.11.2[0m
-[0m[[0mdebug[0m] [0mGetting org.scala-sbt:compiler-interface:0.13.13:component from component compiler for Scala 2.11.2[0m
-[0m[[0mdebug[0m] [0mRunning cached compiler 2df68c7f, interfacing (CompilerInterface) with Scala compiler version 2.11.2[0m
-[0m[[0mdebug[0m] [0mCalling Scala compiler with arguments  (CompilerInterface):[0m
-[0m[[0mdebug[0m] [0m	-Yvirtualize[0m
-[0m[[0mdebug[0m] [0m	-deprecation[0m
-[0m[[0mdebug[0m] [0m	-bootclasspath[0m
-[0m[[0mdebug[0m] [0m	C:\Program Files\Java\jre1.8.0_111\lib\resources.jar;C:\Program Files\Java\jre1.8.0_111\lib\rt.jar;C:\Program Files\Java\jre1.8.0_111\lib\sunrsasign.jar;C:\Program Files\Java\jre1.8.0_111\lib\jsse.jar;C:\Program Files\Java\jre1.8.0_111\lib\jce.jar;C:\Program Files\Java\jre1.8.0_111\lib\charsets.jar;C:\Program Files\Java\jre1.8.0_111\lib\jfr.jar;C:\Program Files\Java\jre1.8.0_111\classes;C:\Users\Danii\.ivy2\cache\org.scala-lang.virtualized\scala-library\jars\scala-library-2.11.2.jar[0m
-[0m[[0mdebug[0m] [0m	-classpath[0m
-[0m[[0mdebug[0m] [0m	C:\Users\Danii\Documents\LMS\target\scala-2.11\classes;C:\Users\Danii\.ivy2\cache\org.scala-lang.virtualized\scala-compiler\jars\scala-compiler-2.11.2.jar;C:\Users\Danii\.ivy2\cache\org.scala-lang.virtualized\scala-reflect\jars\scala-reflect-2.11.2.jar;C:\Users\Danii\.ivy2\cache\org.scala-lang.modules\scala-xml_2.11\bundles\scala-xml_2.11-1.0.2.jar;C:\Users\Danii\.ivy2\cache\org.scala-lang.modules\scala-parser-combinators_2.11\bundles\scala-parser-combinators_2.11-1.0.1.jar;C:\Users\Danii\.ivy2\cache\org.scala-lang.lms\lms-core_2.11\jars\lms-core_2.11-1.0.0-SNAPSHOT.jar;C:\Users\Danii\.ivy2\cache\org.scala-lang.plugins\scala-continuations-library_2.11\bundles\scala-continuations-library_2.11-1.0.2.jar;C:\Users\Danii\.ivy2\cache\org.scalatest\scalatest_2.11\bundles\scalatest_2.11-2.2.2.jar[0m
-[0m[[0mdebug[0m] [0mScala compilation took 0.378160219 s[0m
-[0m[[0mdebug[0m] [0m[naha] New invalidations:[0m
-[0m[[0mdebug[0m] [0m[naha] 	Set()[0m
-[0m[[0mdebug[0m] [0m[naha] Initial set of included nodes: Set()[0m
-[0m[[0mdebug[0m] [0m[naha] Previously invalidated, but (transitively) depend on new invalidations:[0m
-[0m[[0mdebug[0m] [0m[naha] 	Set()[0m
-[0m[[0mdebug[0m] [0m[naha] All newly invalidated sources after taking into account (previously) recompiled sources:Set()[0m
+[0m[[31merror[0m] [0mC:\Users\Danii\Documents\LMS\treesearch.scala:22: type mismatch;[0m
+[0m[[31merror[0m] [0m found   : Boolean(true)[0m
+[0m[[31merror[0m] [0m required: this.Rep[Int][0m
+[0m[[31merror[0m] [0m    (which expands to)  this.Exp[Int][0m
+[0m[[31merror[0m] [0m        true[0m
+[0m[[31merror[0m] [0m        ^[0m
+[0m[[31merror[0m] [0mone error found[0m
+[0m[[0mdebug[0m] [0mCompilation failed (CompilerInterface)[0m
+[0m[[31merror[0m] [0m(compile:[31mcompileIncremental[0m) Compilation failed[0m
