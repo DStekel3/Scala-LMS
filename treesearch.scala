@@ -5,27 +5,21 @@ object TreeSearch extends IO {
   val under = "TreeSearch" 
 
   def run() = {
-    // List of integers
-    val nums: List[Int] = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-    val tree = MyTree.fromSortedList(nums)
-    println("contains(5): "+tree.contains(5))
+    // // List of integers
+    // val nums: List[Int] = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    // val tree = MyTree.fromSortedList(nums)
+    // println("contains(5): "+tree.contains(5))
     firstSnippet()
   }
 
   def firstSnippet() = {
     println("Generating first code snippet in /out/"+under+"-1.actual.scala")
-    val snippet = new DslDriver[Int,Boolean] {
+    val snippet = new DslDriver[Int,Boolean] with StagedTree {
       def snippet(x: Rep[Int]) = {
         val nums: List[Int] = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-        val tree = MyTree.fromSortedList(nums)
-
-        // val array: Array[Int] = Array(5, 4, 3, 2, 1, 0)
-        // val i: Rep[Int] = 2
-        // val result: Rep[Int] = array(i) // Error: can't index into Array[Int] with a Rep[Int], Int required
-        // val runtimeArray = staticData(array)
-        // val result: Rep[Int] = runtimeArray(i) // Works:
-
-        tree.contains(5)
+        val tree = Tree.fromSortedList(nums)
+        println("RESULT, contains "+x.toString()+": "+tree.contains(x))
+        true
       }
     }
     assert(snippet.eval(5) == true)
@@ -33,30 +27,8 @@ object TreeSearch extends IO {
   }
 }
 
-trait StagedTree extends Dsl {
-  
-}
-
-/**
- * This file is part of Scalacaster project, https://github.com/vkostyukov/scalacaster
- * and written by Vladimir Kostyukov, http://vkostyukov.ru
- *
- * Binary Search Tree http://en.wikipedia.org/wiki/Binary_search_tree
- *
- * Insert - O(log n)
- * Lookup - O(log n)  
- * Remove - O(log n)
- *
- * -Notes-
- *
- * This is an efficient implementation of binary search tree. This tree guarantees
- * O(log n) running time for ordered operations like 'nthMin', 'nthMax' and 'rank'.
- * The main idea here - is use additional node field that stores size of tree rotted
- * at this node. This allows to get the size of tree in O(1) instead of linear time.
- */
-
-trait StagesTree extends Dsl{
-  abstract sealed class MyTree{
+trait StagedTree extends Dsl{
+  abstract sealed class Tree{
   /**
    * The value of this tree.
    */
@@ -65,12 +37,12 @@ trait StagesTree extends Dsl{
   /**
    * The left child of this tree.
    */
-  def left: MyTree
+  def left: Tree
 
   /**
    * The right child of this tree.
    */
-  def right: MyTree
+  def right: Tree
 
   /**
    * The size of this tree.
@@ -95,7 +67,7 @@ trait StagesTree extends Dsl{
    * Space - O(log n)
    */
   def contains(x: Rep[Int]): Rep[Boolean] = {
-    def loop(t: MyTree, c: Option[Rep[Int]]): Rep[Boolean] = 
+    def loop(t: Tree, c: Option[Rep[Int]]): Rep[Boolean] = 
       if (t.isEmpty) check(c)
       else if (x < t.value) loop(t.left, c)
       else loop(t.right, Some(t.value))
@@ -114,28 +86,28 @@ trait StagesTree extends Dsl{
   def fail(m: String) = throw new NoSuchElementException(m)
 }
 
-case object MyLeaf extends MyTree {
+case object Leaf extends Tree {
   def value: Nothing = fail("An empty tree.")
-  def left: MyTree = fail("An empty tree.")
-  def right: MyTree = fail("An empty tree.")
+  def left: Tree = fail("An empty tree.")
+  def right: Tree = fail("An empty tree.")
   def size: Int = 0
 
   def isEmpty: Boolean = true
 }
 
-case class MyBranch(value: Rep[Int], 
-                    left: MyTree, 
-                    right: MyTree, 
-                    size: Int) extends MyTree {
+case class Branch(value: Rep[Int], 
+                    left: Tree, 
+                    right: Tree, 
+                    size: Int) extends Tree {
   def isEmpty: Boolean = false
 }
 
-object MyTree {
+object Tree {
 
   /**
    * An empty tree.
    */
-  def empty[Int]: MyTree = MyLeaf
+  def empty[Int]: Tree = Leaf
 
   /**
    * A smart constructor for tree's branch.
@@ -143,8 +115,8 @@ object MyTree {
    * Time - O(1)
    * Space - O(1)
    */
-  def make(x: Int, l: MyTree =MyLeaf, r: MyTree = MyLeaf): MyTree =
-    MyBranch(x, l, r, l.size + r.size + 1)
+  def make(x: Int, l: Tree =Leaf, r: Tree = Leaf): Tree =
+    Branch(x, l, r, l.size + r.size + 1)
 
   /**
    * Creates a new balanced tree from given sorted list 'l'.
@@ -156,19 +128,37 @@ object MyTree {
    * Time - O(n)
    * Space - O(log n)
    */
-  def fromSortedList(l: List[Int]): MyTree = {
-    def loop(ll: List[Int], n: Int): (List[Int], MyTree) = 
-      if (n == 0) (ll, MyTree.empty)
+  def fromSortedList(l: List[Int]): Tree = {
+    def loop(ll: List[Int], n: Int): (List[Int], Tree) = 
+      if (n == 0) (ll, Tree.empty)
       else {
         val (lt, left) = loop(ll, n/2)
         val (rt, right) = loop(lt.tail, n-1-n/2)
-        (rt, MyTree.make(lt.head, left, right))
+        (rt, Tree.make(lt.head, left, right))
       }
 
     loop(l, l.length)._2
   }
 }
 }
+
+/**
+ * This file is part of Scalacaster project, https://github.com/vkostyukov/scalacaster
+ * and written by Vladimir Kostyukov, http://vkostyukov.ru
+ *
+ * Binary Search Tree http://en.wikipedia.org/wiki/Binary_search_tree
+ *
+ * Insert - O(log n)
+ * Lookup - O(log n)  
+ * Remove - O(log n)
+ *
+ * -Notes-
+ *
+ * This is an efficient implementation of binary search tree. This tree guarantees
+ * O(log n) running time for ordered operations like 'nthMin', 'nthMax' and 'rank'.
+ * The main idea here - is use additional node field that stores size of tree rotted
+ * at this node. This allows to get the size of tree in O(1) instead of linear time.
+ */
 
 abstract sealed class MyTree{
   /**
