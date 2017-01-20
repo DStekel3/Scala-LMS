@@ -15,16 +15,20 @@ object TreeSearch extends IO {
 
   def firstSnippet() = {
     println("Generating first code snippet in /out/"+under+"-1.actual.scala")
-    val snippet = new DslDriver[Int,Int] {
+    val snippet = new DslDriver[Int,Boolean] {
       def snippet(x: Rep[Int]) = {
-        // val nums: List[Int] = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-        // val tree = MyTree.fromSortedList(nums)
-        true
+        val nums: List[Int] = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        val tree = MyTree.fromSortedList(nums)
+        tree.contains(5)
       }
     }
     assert(snippet.eval(5) == true)
-    exec("-69", snippet.code)
+    exec("-TreeSearch", snippet.code)
   }
+}
+
+trait StagedTree extends Dsl {
+  
 }
 
 /**
@@ -96,7 +100,7 @@ abstract sealed class MyTree {
    * Time - O(log n)
    * Space - O(log n)
    */
-  def contains[B >: Int <% Ordered[B]](x: B): Boolean = {
+  def contains(x: Int): Boolean = {
     def loop(t: MyTree, c: Option[Int]): Boolean = 
       if (t.isEmpty) check(c)
       else if (x < t.value) loop(t.left, c)
