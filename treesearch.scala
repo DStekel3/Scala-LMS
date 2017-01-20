@@ -74,19 +74,6 @@ abstract sealed class MyTree {
    */
   def isEmpty: Boolean
 
- 
-  /**
-   * Adds given element 'x' into this tree.
-   *
-   * Time - O(log n)
-   * Space - O(log n)
-   */
-  def add(x: Int): MyTree =
-    if (isEmpty) MyTree.make(x)
-    else if (x < value) MyTree.make(value, left.add(x), right)
-    else if (x > value) MyTree.make(value, left, right.add(x))
-    else this
-
   /**
    * Checks whether this tree contains element 'x' or not.
    *
@@ -111,21 +98,6 @@ abstract sealed class MyTree {
     }
 
     loop(this, None)
-  }
-
-  /**
-   * Searches for the minimal element of this tree.
-   * 
-   * Time - O(log n)
-   * Space - O(log n)
-   */
-  def min: Int = {
-    def loop(t: MyTree, m: Int): Int = 
-      if (t.isEmpty) m
-      else loop(t.left, t.value)
-
-    if (isEmpty) fail("An empty tree.")
-    else loop(left, value)
   }
 
   /**
