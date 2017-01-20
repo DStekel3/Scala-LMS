@@ -1,6 +1,5 @@
 import scala.lms.common._
 import scala.collection.immutable.Queue
-import binaryTree._
 
 object TreeSearch extends IO {
   val under = "TreeSearch" 
