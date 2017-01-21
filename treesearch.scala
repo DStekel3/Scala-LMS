@@ -13,16 +13,19 @@ object TreeSearch extends IO {
   }
 
   def firstSnippet() = {
-    println("Generating first code snippet in /out/"+under+"-1.actual.scala")
+    println("Generating code snippet in /out/"+under+"-1.actual.scala")
+    
+    
     val snippet = new DslDriver[Int,Boolean] with StagedTree {
+    val nums: List[Int] = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    val tree = Tree.fromSortedList(nums)
+
       def snippet(x: Rep[Int]) = {
-        val nums: List[Int] = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-        val tree = Tree.fromSortedList(nums)
-        println("RESULT, contains "+x.toString()+": "+tree.contains(x))
-        true
+        tree.containsRewritten(x)
       }
     }
     assert(snippet.eval(5) == true)
+    assert(snippet.eval(11) == false)
     exec("-TreeSearch", snippet.code)
   }
 }
@@ -72,12 +75,27 @@ trait StagedTree extends Dsl{
       else if (x < t.value) loop(t.left, c)
       else loop(t.right, Some(t.value))
 
-    def check(c: Option[Rep[Int]]): Rep[Boolean] = c match {
+    def check(c: Option[Rep[Int]]): Rep[Boolean] = {
+    println("Option[Rep[Int]]: " + c)
+    val const = 5
+    println("const: "+const)
+    println("X: "+x)
+    c match {
       case Some(y) if y == x => true
       case _ => false
+      }
     }
-
     loop(this, None)
+  }
+
+   def containsRewritten(x: Rep[Int]): Rep[Boolean] = {
+    def loop(t: Tree): Rep[Boolean] = 
+      if (t.isEmpty) false
+      else if (t.value == x) true
+      else if (x < t.value) loop(t.left)
+      else loop(t.right)
+    
+    loop(this)
   }
 
   /**
