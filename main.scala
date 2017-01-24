@@ -42,23 +42,28 @@ trait UnstagedRabinKarp extends FloorMod {
     def hash(string: String, length: Int): Int =
       (0 until length).foldLeft(0)((hash, i) => (hash * a + string(i)) %% q)
 
-    def loop(textHash: Int, patternHash: Int, i: Int): Int = {
-      if (textHash == patternHash) i
-      else if (i == n - m) -1
-      else {
-        val tempHash = (textHash - (aMax * text(i)) %% q) %% q  // subtract old character
-        val newHash = (tempHash * a + text(i + m)) %% q         // add new character
-        loop(newHash, patternHash, i + 1)
-      }
+    var textHash: Int = hash(text, m)
+    val patternHash: Int = hash(pattern, m)
+
+    if (textHash == patternHash)
+      return 0
+
+    for (i <- (0 until n - m): Range) {
+      val tempHash = (textHash - (aMax * text(i)) %% q) %% q  // subtract old character
+      textHash = (tempHash * a + text(i + m)) %% q            // add new character
+
+      if (textHash == patternHash)
+        return i + 1
     }
-    loop(hash(text, m), hash(pattern, m), 0)
+
+    -1
   }
 }
 
 trait StagedRabinKarp extends Dsl with FoldableRanges with FloorMod {
-  def matchRabinKarp(text: Rep[String], pattern: String): Rep[Int] = {
-    val n: Rep[Int] = text.length
-    val m: Int = pattern.length
+  def matchRabinKarp(text: String, pattern: Rep[String], patternLength: Int): Rep[Int] = {
+    val n: Int = text.length
+    val m: Int = patternLength
     val q: Int = 3355439 // a large prime
     val a: Int = 256     // the base of the rolling hash
     val aMax: Int = ((1 until m): Range).foldLeft(1)((res, i) => (res * a) %% q) // aMax = a^(m-1) % q
@@ -69,16 +74,21 @@ trait StagedRabinKarp extends Dsl with FoldableRanges with FloorMod {
     def hashStaged(string: Rep[String], length: Int): Rep[Int] = 
       ((0 until length): Rep[Range]).foldLeft(0)((hash, i) => (hash * a + string(i)) %% q)
 
-    def loop(patternHash: Int): Rep[((Int, Int)) => Int] = { (i: Rep[Int], textHash: Rep[Int]) =>
-      if (textHash == patternHash) i
-      else if (i == n - m) -1
-      else {
-        val tempHash = (textHash - (aMax * text(i)) %% q) %% q // subtract old character
-        val newHash = (tempHash * a + text(i + m)) %% q        // add new character
-        loop(patternHash)(i + 1, newHash)
-      }
+    var textHash: Int = hash(text, m)
+    val patternHash: Rep[Int] = hashStaged(pattern, m)
+
+    if (textHash == patternHash)
+      returnL(0)
+
+    for (i <- (0 until n - m): Range) {
+      val tempHash = (textHash - (aMax * text(i)) %% q) %% q  // subtract old character
+      textHash = (tempHash * a + text(i + m)) %% q            // add new character
+
+      if (textHash == patternHash)
+        returnL(i + 1)
     }
-    loop(hash(pattern, m))(0, hashStaged(text, m))
+    
+    -1
   }
 }
 
@@ -87,9 +97,9 @@ object Main extends IO with UnstagedRabinKarp {
   
   val predefinedPattern = "Scala"
   val predefinedString = "Since Fender Stratocaster is a classic guitar, Scalacaster is about classic algorithms and data structures in Scala. Scalacaster includes loads of widely used implementation techniques and approaches, which have been developed by best programmers and enthusiasts of functional programming. Studying purely functional data structures is always fun and challenge for researchers, since data structures in a functional setting are much elegant and smarter than in an imperative setting."
-  
+
   val snippet: DslDriver[String,Int] = new DslDriver[String,Int] with StagedRabinKarp {
-    def snippet(str: Rep[String]) = matchRabinKarp(str, predefinedPattern)
+    def snippet(str: Rep[String]) = matchRabinKarp(predefinedString, str, 10)
   }
 
   def matchRabinKarp(text: String): Int = {
@@ -100,26 +110,33 @@ object Main extends IO with UnstagedRabinKarp {
     println("Generating code snippet in /out/"+under+"-1.actual.scala")
     exec("-1", snippet.code)
     
-    val texts = List(
-      "The pattern is Scala",
-      "scalasCALAScala",
-      "This string does not contain the pattern",
-      "This one, however, does: Scala!",
-      "Since Fender Stratocaster is a classic guitar, .....caster is about classic algorithms and data structures in ...... .....caster includes loads of widely used implementation techniques and approaches, which have been developed by best programmers and enthusiasts of functional programming. Studying purely functional data structures is always fun and challenge for researchers, since data structures in a functional setting are much elegant and smarter than in an imperative setting. Scala!"
+    val patterns = List(
+      "Since Fend",
+      "Fender Str",
+      "Stratocast",
+      "Scala lang",
+      "functional",
+      "imperative",
+      "ve setting."
     )
+
+    println("Precompiling generated code")
+    snippet.precompile
     
-    val unstagedSearchResults = texts.map(string => matchRabinKarp(string, predefinedPattern))
-    val patternSearchResults = texts.map(string => matchRabinKarp(string))
+    println("Running unstaged matcher")
+    val unstagedSearchResults = patterns.map(pattern => matchRabinKarp(predefinedString, pattern))
+    println("Running staged matcher")
+    val stagedSearchResults = patterns.map(pattern => matchRabinKarp(pattern))
     
-    val combinedUnstagedSearchResults = texts zip unstagedSearchResults
-    val combinedPatternSearchResults = texts zip patternSearchResults
+    val combinedUnstagedSearchResults = patterns zip unstagedSearchResults
+    val combinedStagedSearchResults = patterns zip stagedSearchResults
 
     println("Unstaged:")
     for ((string, result) <- combinedUnstagedSearchResults) {
       println(s"$string -> $result")
     }
     println("\nStaged:")
-    for ((string, result) <- combinedPatternSearchResults) {
+    for ((string, result) <- combinedStagedSearchResults) {
       println(s"$string -> $result")
     }
   }
