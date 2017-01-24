@@ -101,7 +101,7 @@ object utils {
     val now = System.nanoTime
     val result = a
     val micros = (System.nanoTime - now) / 1000
-    println("%d microseconds".format(micros))
+    println(f"$micros%,d microseconds")
     result
   }
   def captureOut(func: => Any): String = {

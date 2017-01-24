@@ -123,13 +123,34 @@ object Main extends IO with UnstagedRabinKarp {
     patterns.foreach { pattern: String => assert(pattern.length == predefinedPatternLength,
       s"""Search pattern \"$pattern\" has length ${pattern.length}; it must be $predefinedPatternLength!""") }
 
-    println("Precompiling generated code")
+    println("Precompiling generated code...")
     snippet.precompile
-    
-    println("Running unstaged matcher")
-    val unstagedSearchResults = patterns.map(pattern => matchRabinKarp(predefinedString, pattern))
-    println("Running staged matcher")
-    val stagedSearchResults = patterns.map(pattern => matchRabinKarp(pattern))
+  
+    var unstagedSearchResults: List[Int] = List()
+    var stagedSearchResults: List[Int] = List()
+    for (test <- 1 to 10) {
+      println(s"\n===== Test $test =====")
+      for (i <- 0 until 10000) {
+        unstagedSearchResults = patterns.map(pattern => matchRabinKarp(predefinedString, pattern))
+      }
+      println("Running unstaged matcher")
+      utils.time {
+        for (i <- 0 until 10000) {
+          unstagedSearchResults = patterns.map(pattern => matchRabinKarp(predefinedString, pattern))
+        }
+      }
+      for (i <- 0 until 10000) {
+        stagedSearchResults = patterns.map(pattern => matchRabinKarp(pattern))
+      }
+      println("Running staged matcher")
+      utils.time {
+        for (i <- 0 until 10000) {
+          stagedSearchResults = patterns.map(pattern => matchRabinKarp(pattern))
+        }
+      }
+    }
+
+    println("\nResults:")
     
     val combinedUnstagedSearchResults = patterns zip unstagedSearchResults
     val combinedStagedSearchResults = patterns zip stagedSearchResults
