@@ -95,11 +95,11 @@ trait StagedRabinKarp extends Dsl with FoldableRanges with FloorMod {
 object Main extends IO with UnstagedRabinKarp {
   val under = "Strings"
   
-  val predefinedPattern = "Scala"
+  val predefinedPatternLength = 10
   val predefinedString = "Since Fender Stratocaster is a classic guitar, Scalacaster is about classic algorithms and data structures in Scala. Scalacaster includes loads of widely used implementation techniques and approaches, which have been developed by best programmers and enthusiasts of functional programming. Studying purely functional data structures is always fun and challenge for researchers, since data structures in a functional setting are much elegant and smarter than in an imperative setting."
 
   val snippet: DslDriver[String,Int] = new DslDriver[String,Int] with StagedRabinKarp {
-    def snippet(str: Rep[String]) = matchRabinKarp(predefinedString, str, 10)
+    def snippet(str: Rep[String]) = matchRabinKarp(predefinedString, str, predefinedPatternLength)
   }
 
   def matchRabinKarp(text: String): Int = {
@@ -117,8 +117,11 @@ object Main extends IO with UnstagedRabinKarp {
       "Scala lang",
       "functional",
       "imperative",
-      "ve setting."
+      "e setting."
     )
+
+    patterns.foreach { pattern: String => assert(pattern.length == predefinedPatternLength,
+      s"""Search pattern \"$pattern\" has length ${pattern.length}; it must be $predefinedPatternLength!""") }
 
     println("Precompiling generated code")
     snippet.precompile
