@@ -95,39 +95,13 @@ trait StagedRabinKarp extends Dsl with FoldableRanges with FloorMod {
 object Main extends IO with UnstagedRabinKarp {
   val under = "Strings"
   
-  val predefinedString = 
-"""
-frhprjnvtkuchsswpokh
-krsqgtddykrntugzoewo
-eqbvelhkcrbzqmyjnuqv
-zomqruxwbuwwguqenzhq
-jrrudreomteqgtfbcwja
-ttvkqtkdqzbfamoumgbu
-ekcxbxwqdiicxzqgzryv
-elexiwqytmnlvmubilzi
-gqnalxwixwmypyzmrtwm
-ihmgbaruvpjrhovxbjwo
-wqelxxzoeutpjcavucde
-twovraaqcbkxlcjeyood
-yjcebzydzyzghayzhdkk
-atgybduatylqirsrvmss
-jzbavamlnpjzxxmvexvq
-bskzzitvujdmridtktze
-rlxvyhsxxicpgawhduzm
-nztrwhzjsrephzgdatkd
-oyvdbloiwsxuqvnqywbr
-eqkivrebyqnzyqpxdhml
-nhllgmpqoraaqhwvvrlx
-xxitniriwdjvtwpkgmvg
-osxnupkygdlvfinfzadt
-pxxqiiaqxiuhreotublj
-sirsxhgndaeaxpbcglei
-""".filter(c => (c != '\n' && c != '\r'))
-
+  // We will search in a pre-defined text of random characters of this length.
+  val textSize = 500
   // We will search in the pre-defined text for search patterns of this length.
   val patternSize = 10
   // We will generate this many search patterns.
   val numPatterns = 10000
+
   // When generating patterns to search for, we generate both random
   // gibberish (which will not appear in the pre-defined text), and random
   // substrings from that text (which will of course be found).
@@ -137,11 +111,13 @@ sirsxhgndaeaxpbcglei
   // When timing the algorithms, we repeat the whole experiment this many times.
   val numTests = 10
   // In each experiment, we match every pattern against the search string.
-
   // In total, we run both the staged and unstaged algorithm {numTests} * {numPatterns} times.
 
+  val rng = scala.util.Random
+  val predefinedSearchText = rng.alphanumeric.take(textSize).mkString
+
   val snippet = new DslDriver[String,Int] with StagedRabinKarp {
-      def snippet(str: Rep[String]) = matchRabinKarp(predefinedString, str, patternSize)
+      def snippet(str: Rep[String]) = matchRabinKarp(predefinedSearchText, str, patternSize)
   }
 
   def matchRabinKarp(pattern: String): Int = {
@@ -155,7 +131,6 @@ sirsxhgndaeaxpbcglei
     exec(patternSize.toString, snippet.code)
 
     println("Generating random search patterns...")
-    val rng = scala.util.Random
     val patterns = new Array[String](numPatterns)
     for (i <- 0 until numPatterns) {
       if (rng.nextInt(100) < randomStringPercentage) {
@@ -163,14 +138,14 @@ sirsxhgndaeaxpbcglei
         patterns(i) = rng.alphanumeric.take(patternSize).mkString
       }
       else {
-        val randomStartIndex = rng.nextInt(predefinedString.length - patternSize + 1)
+        val randomStartIndex = rng.nextInt(predefinedSearchText.length - patternSize + 1)
         // Pick a random fragment from the search string
-        patterns(i) = predefinedString.substring(randomStartIndex, randomStartIndex + patternSize)
+        patterns(i) = predefinedSearchText.substring(randomStartIndex, randomStartIndex + patternSize)
       }
     }
 
     var unstagedSearchResults = new Array[Int](0)
-    unstagedSearchResults = patterns.map(pattern => matchRabinKarp(predefinedString, pattern))
+    unstagedSearchResults = patterns.map(pattern => matchRabinKarp(predefinedSearchText, pattern))
     var stagedSearchResults = new Array[Int](0)
     stagedSearchResults = patterns.map(pattern => matchRabinKarp(pattern))
 
@@ -188,7 +163,7 @@ sirsxhgndaeaxpbcglei
       println(s"\n===== Test $test =====")
       println(s"Running unstaged matcher")
       utils.time {
-        unstagedSearchResults = patterns.map(pattern => matchRabinKarp(predefinedString, pattern))
+        unstagedSearchResults = patterns.map(pattern => matchRabinKarp(predefinedSearchText, pattern))
       }
       println("Running staged matcher")
       utils.time {
