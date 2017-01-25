@@ -15,12 +15,11 @@ object Main {
     // https://scala-lms.github.io/tutorials/shonan.html
     println("\n::: Shonan HMM Challenge :::")
     Shonan.run()
-
+    
     // The Regular Expressions tutorial - see regex.scala
     // https://scala-lms.github.io/tutorials/regex.html
     println("\n::: Regular Expressions :::")
     Regex.run()
-
     // The Automata-Based Regex Matcher tutorial - see automata.scala
     // https://scala-lms.github.io/tutorials/automata.html
     println("\n::: Automata-Based Regex Matcher :::")
@@ -35,8 +34,8 @@ object Main {
      * If it is run by itself, with the other tests disabled, it works fine */
     // The Ackermann's Function tutorial - see ack.scala
     // https://scala-lms.github.io/tutorials/ack.html
-    // println("\n::: Ackermann's Function :::")
-    // Ackermann.run()
+    //println("\n::: Ackermann's Function :::")
+    //Ackermann.run()
 
     /* The following tutorials are not included:
 
