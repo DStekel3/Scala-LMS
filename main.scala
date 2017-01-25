@@ -95,73 +95,105 @@ trait StagedRabinKarp extends Dsl with FoldableRanges with FloorMod {
 object Main extends IO with UnstagedRabinKarp {
   val under = "Strings"
   
-  val predefinedPatternLength = 10
-  val predefinedString = "Since Fender Stratocaster is a classic guitar, Scalacaster is about classic algorithms and data structures in Scala. Scalacaster includes loads of widely used implementation techniques and approaches, which have been developed by best programmers and enthusiasts of functional programming. Studying purely functional data structures is always fun and challenge for researchers, since data structures in a functional setting are much elegant and smarter than in an imperative setting."
+  val predefinedString = 
+"""
+frhprjnvtkuchsswpokh
+krsqgtddykrntugzoewo
+eqbvelhkcrbzqmyjnuqv
+zomqruxwbuwwguqenzhq
+jrrudreomteqgtfbcwja
+ttvkqtkdqzbfamoumgbu
+ekcxbxwqdiicxzqgzryv
+elexiwqytmnlvmubilzi
+gqnalxwixwmypyzmrtwm
+ihmgbaruvpjrhovxbjwo
+wqelxxzoeutpjcavucde
+twovraaqcbkxlcjeyood
+yjcebzydzyzghayzhdkk
+atgybduatylqirsrvmss
+jzbavamlnpjzxxmvexvq
+bskzzitvujdmridtktze
+rlxvyhsxxicpgawhduzm
+nztrwhzjsrephzgdatkd
+oyvdbloiwsxuqvnqywbr
+eqkivrebyqnzyqpxdhml
+nhllgmpqoraaqhwvvrlx
+xxitniriwdjvtwpkgmvg
+osxnupkygdlvfinfzadt
+pxxqiiaqxiuhreotublj
+sirsxhgndaeaxpbcglei
+""".filter(c => (c != '\n' && c != '\r'))
 
-  val snippet: DslDriver[String,Int] = new DslDriver[String,Int] with StagedRabinKarp {
-    def snippet(str: Rep[String]) = matchRabinKarp(predefinedString, str, predefinedPatternLength)
+  // We will search in the pre-defined text for search patterns of this length.
+  val patternSize = 10
+  // We will generate this many search patterns.
+  val numPatterns = 10000
+  // When generating patterns to search for, we generate both random
+  // gibberish (which will not appear in the pre-defined text), and random
+  // substrings from that text (which will of course be found).
+  // This parameter determines the percentage of random gibberish strings.
+  val randomStringPercentage = 30
+
+  // When timing the algorithms, we repeat the whole experiment this many times.
+  val numTests = 10
+  // In each experiment, we match every pattern against the search string.
+
+  // In total, we run both the staged and unstaged algorithm {numTests} * {numPatterns} times.
+
+  val snippet = new DslDriver[String,Int] with StagedRabinKarp {
+      def snippet(str: Rep[String]) = matchRabinKarp(predefinedString, str, patternSize)
   }
 
-  def matchRabinKarp(text: String): Int = {
-    snippet.eval(text)
+  def matchRabinKarp(pattern: String): Int = {
+    snippet.eval(pattern)
   }
 
   def main(args: Array[String]): Unit = {
-    println("Generating code snippet in /out/"+under+"-1.actual.scala")
-    exec("-1", snippet.code)
-    
-    val patterns = List(
-      "Since Fend",
-      "Fender Str",
-      "Stratocast",
-      "Scala lang",
-      "functional",
-      "imperative",
-      "e setting."
-    )
-
-    patterns.foreach { pattern: String => assert(pattern.length == predefinedPatternLength,
-      s"""Search pattern \"$pattern\" has length ${pattern.length}; it must be $predefinedPatternLength!""") }
-
-    println("Precompiling generated code...")
+    println("Precompiling code snippet...")
     snippet.precompile
-  
-    var unstagedSearchResults: List[Int] = List()
-    var stagedSearchResults: List[Int] = List()
-    for (test <- 1 to 10) {
+    println("Generating code snippet in /out/"+under+"-"+patternSize+".actual.scala")
+    exec(patternSize.toString, snippet.code)
+
+    println("Generating random search patterns...")
+    val rng = scala.util.Random
+    val patterns = new Array[String](numPatterns)
+    for (i <- 0 until numPatterns) {
+      if (rng.nextInt(100) < randomStringPercentage) {
+        // Generate random gibberish
+        patterns(i) = rng.alphanumeric.take(patternSize).mkString
+      }
+      else {
+        val randomStartIndex = rng.nextInt(predefinedString.length - patternSize + 1)
+        // Pick a random fragment from the search string
+        patterns(i) = predefinedString.substring(randomStartIndex, randomStartIndex + patternSize)
+      }
+    }
+
+    var unstagedSearchResults = new Array[Int](0)
+    unstagedSearchResults = patterns.map(pattern => matchRabinKarp(predefinedString, pattern))
+    var stagedSearchResults = new Array[Int](0)
+    stagedSearchResults = patterns.map(pattern => matchRabinKarp(pattern))
+
+    val combinedUnstagedAndStagedResults = unstagedSearchResults zip stagedSearchResults
+    val combinedPatternsAndResults = patterns zip combinedUnstagedAndStagedResults
+
+    println("Verifying results...")
+    for ((string, (unstagedResult, stagedResult)) <- combinedPatternsAndResults) {
+      assert(unstagedResult == stagedResult, "Unstaged and staged results are not the same!")
+      println(s"$string -> ($unstagedResult, $stagedResult)")
+    }
+    println("Staged and unstaged algorithms agree on all inputs!")
+
+    for (test <- 1 to numTests) {
       println(s"\n===== Test $test =====")
-      for (i <- 0 until 10000) {
-        unstagedSearchResults = patterns.map(pattern => matchRabinKarp(predefinedString, pattern))
-      }
-      println("Running unstaged matcher")
+      println(s"Running unstaged matcher")
       utils.time {
-        for (i <- 0 until 10000) {
-          unstagedSearchResults = patterns.map(pattern => matchRabinKarp(predefinedString, pattern))
-        }
-      }
-      for (i <- 0 until 10000) {
-        stagedSearchResults = patterns.map(pattern => matchRabinKarp(pattern))
+        unstagedSearchResults = patterns.map(pattern => matchRabinKarp(predefinedString, pattern))
       }
       println("Running staged matcher")
       utils.time {
-        for (i <- 0 until 10000) {
-          stagedSearchResults = patterns.map(pattern => matchRabinKarp(pattern))
-        }
+        stagedSearchResults = patterns.map(pattern => matchRabinKarp(pattern))
       }
-    }
-
-    println("\nResults:")
-    
-    val combinedUnstagedSearchResults = patterns zip unstagedSearchResults
-    val combinedStagedSearchResults = patterns zip stagedSearchResults
-
-    println("Unstaged:")
-    for ((string, result) <- combinedUnstagedSearchResults) {
-      println(s"$string -> $result")
-    }
-    println("\nStaged:")
-    for ((string, result) <- combinedStagedSearchResults) {
-      println(s"$string -> $result")
     }
   }
 }
