@@ -128,7 +128,7 @@ object RabinKarp extends IO with UnstagedRabinKarp {
     println("Precompiling code snippet...")
     snippet.precompile
     println("Generating code snippet in /out/"+under+"-"+textSize+"-"+patternSize+".actual.scala")
-    exec(textSize.toString+"-"+patternSize.toString, snippet.code)
+    exec("-"+textSize.toString+"-"+patternSize.toString, snippet.code)
 
     println("Generating random search patterns...")
     val patterns = new Array[String](numPatterns)
