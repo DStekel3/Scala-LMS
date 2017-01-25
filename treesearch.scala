@@ -1,36 +1,116 @@
 import scala.lms.common._
-import scala.collection.immutable.Queue
+import scala.collection.mutable.ListBuffer
 
 object TreeSearch extends IO {
-  val under = "TreeSearch" 
+  val under = "TreeSearch"
 
-  def run() = {
-    // // List of integers
-    // val nums: List[Int] = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-    // val tree = MyTree.fromSortedList(nums)
-    // println("contains(5): "+tree.contains(5))
-    firstSnippet()
-  }
+  // size of the balanced binary tree
+  val sizeOfTree = 250
 
-  def firstSnippet() = {
-    println("Generating code snippet in /out/"+under+"-1.actual.scala")
-    
-    
-    val snippet = new DslDriver[Int,Boolean] with StagedTree {
-    val nums: List[Int] = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-    val tree = Tree.fromSortedList(nums)
+  // list of values which is the content of the tree
+  val nums: List[Int] = List.range(1, sizeOfTree+1)
 
+  // random object, used to generate a random number
+  val random = scala.util.Random
+  
+  // list where we keep track of the results of the 'default' algorithm
+  var unstagedResults  = new ListBuffer[Long]()
+
+  // list where we keep track of the results of the staged algorithm
+  var stagedResults = new ListBuffer[Long]()
+
+  // # of times we search for a value in the tree
+  val numberOfTimes = 1000000
+
+  // Snippet which, when called, calls the staged version of the Tree.contains()-method
+  val snippet = new DslDriver[Int,Boolean] with StagedVersion {
+      val tree = Tree.fromSortedList(nums)
       def snippet(x: Rep[Int]) = {
-        tree.containsRewritten(x)
+        tree.contains(x)
       }
     }
-    assert(snippet.eval(5) == true)
-    assert(snippet.eval(11) == false)
-    exec("-TreeSearch", snippet.code)
+
+  def run() = {
+    // generate staged code. See this code in the /out folder
+    snippet.precompile
+    println("Generated staged code. Order of output = (unstaged-staged) in milliseconds.")
+    exec("-TreeSearch"+sizeOfTree, snippet.code)
+    
+    // initialization code
+    val a = 0
+    for(a <- 1 to 1000)
+    {
+      snippet.eval(a)
+    }
+    
+    // run experiment once, used for initialization
+    System.gc
+    
+    val tree = Tree.fromSortedList(nums)
+    for(z <- 1 to numberOfTimes){
+      val num = random.nextInt(sizeOfTree)
+      tree.contains(num)
+    }
+    System.gc
+    for(z <- 1 to numberOfTimes){
+      val num = random.nextInt(sizeOfTree)
+      snippet.eval(num)
+    }
+    println("Initialization finished.")
+
+    // run experiment 30 times and save results in a list
+    val z = 1
+    for(z <- 1 to 30)
+    {
+      System.gc
+      unstagedRun()
+      System.gc
+      stagedRun()
+      println("")
+    }
+
+    // print average of experiments
+    println("Average millis unstaged: "+mean(unstagedResults.toList))
+    println("Average millis staged:   "+mean(stagedResults.toList))
+  }
+
+  // method which computes the mean of a list
+  def mean[T](item:Traversable[T])(implicit n:Numeric[T]) = {
+  n.toDouble(item.sum) / item.size.toDouble
+  }
+
+  // method where we create a tree and search (in the default way) for a random value (numberOfTimes) times.
+  def unstagedRun() = {
+    val tree = Tree.fromSortedList(nums)
+    val t1 = System.nanoTime();
+    val z = 1
+    for(z <- 1 to numberOfTimes){
+      val num = random.nextInt(sizeOfTree)
+      tree.contains(num)
+    }
+    val t2 = System.nanoTime();
+    val millis = (t2 - t1)/1000000
+    println(millis)
+    unstagedResults += millis
+  }
+
+  // method where we create a tree and search (in the staged way) for a random value (numberOfTimes) times.
+  def stagedRun() = {
+    val t1 = System.nanoTime();
+    val z = 1
+    for(z <- 1 to numberOfTimes){
+      val num = random.nextInt(sizeOfTree)
+      snippet.eval(num)
+    }
+    val t2 = System.nanoTime();
+    val millis = (t2 - t1)/1000000
+    println(millis)
+    stagedResults += millis
   }
 }
 
-trait StagedTree extends Dsl{
+// Staged implementation of Tree
+trait StagedVersion extends Dsl{
   abstract sealed class Tree{
   /**
    * The value of this tree.
@@ -57,38 +137,7 @@ trait StagedTree extends Dsl{
    */
   def isEmpty: Boolean
 
-  /**
-   * Checks whether this tree contains element 'x' or not.
-   *
-   * Exercise 2.1 @ PFDS.
-   *
-   * According to the Anderson's paper (1991) we can reduce the number of comparisons
-   * from 2d to d + 1 in the worst case by keeping track of candidate elements that migh
-   * be equal to the query.
-   *
-   * Time - O(log n)
-   * Space - O(log n)
-   */
-  def contains(x: Rep[Int]): Rep[Boolean] = {
-    def loop(t: Tree, c: Option[Rep[Int]]): Rep[Boolean] = 
-      if (t.isEmpty) check(c)
-      else if (x < t.value) loop(t.left, c)
-      else loop(t.right, Some(t.value))
-
-    def check(c: Option[Rep[Int]]): Rep[Boolean] = {
-    println("Option[Rep[Int]]: " + c)
-    val const = 5
-    println("const: "+const)
-    println("X: "+x)
-    c match {
-      case Some(y) if y == x => true
-      case _ => false
-      }
-    }
-    loop(this, None)
-  }
-
-   def containsRewritten(x: Rep[Int]): Rep[Boolean] = {
+   def contains(x: Rep[Int]): Rep[Boolean] = {
     def loop(t: Tree): Rep[Boolean] = 
       if (t.isEmpty) false
       else if (t.value == x) true
@@ -161,24 +210,14 @@ object Tree {
 }
 
 /**
- * This file is part of Scalacaster project, https://github.com/vkostyukov/scalacaster
- * and written by Vladimir Kostyukov, http://vkostyukov.ru
+ * This code is based on Scalacaster project, https://github.com/vkostyukov/scalacaster
+ *which is written by Vladimir Kostyukov, http://vkostyukov.ru
  *
  * Binary Search Tree http://en.wikipedia.org/wiki/Binary_search_tree
- *
- * Insert - O(log n)
- * Lookup - O(log n)  
- * Remove - O(log n)
- *
  * -Notes-
- *
- * This is an efficient implementation of binary search tree. This tree guarantees
- * O(log n) running time for ordered operations like 'nthMin', 'nthMax' and 'rank'.
- * The main idea here - is use additional node field that stores size of tree rotted
- * at this node. This allows to get the size of tree in O(1) instead of linear time.
- */
+**/
 
-abstract sealed class MyTree{
+abstract sealed class Tree{
   /**
    * The value of this tree.
    */
@@ -187,12 +226,12 @@ abstract sealed class MyTree{
   /**
    * The left child of this tree.
    */
-  def left: MyTree
+  def left: Tree
 
   /**
    * The right child of this tree.
    */
-  def right: MyTree
+  def right: Tree
 
   /**
    * The size of this tree.
@@ -204,30 +243,14 @@ abstract sealed class MyTree{
    */
   def isEmpty: Boolean
 
-  /**
-   * Checks whether this tree contains element 'x' or not.
-   *
-   * Exercise 2.1 @ PFDS.
-   *
-   * According to the Anderson's paper (1991) we can reduce the number of comparisons
-   * from 2d to d + 1 in the worst case by keeping track of candidate elements that migh
-   * be equal to the query.
-   *
-   * Time - O(log n)
-   * Space - O(log n)
-   */
   def contains(x: Int): Boolean = {
-    def loop(t: MyTree, c: Option[Int]): Boolean = 
-      if (t.isEmpty) check(c)
-      else if (x < t.value) loop(t.left, c)
-      else loop(t.right, Some(t.value))
-
-    def check(c: Option[Int]): Boolean = c match {
-      case Some(y) if y == x => true
-      case _ => false
-    }
-
-    loop(this, None)
+    def loop(t: Tree): Boolean = 
+      if (t.isEmpty) false
+      else if (t.value == x) true
+      else if (x < t.value) loop(t.left)
+      else loop(t.right)
+    
+    loop(this)
   }
 
   /**
@@ -247,28 +270,28 @@ abstract sealed class MyTree{
   def fail(m: String) = throw new NoSuchElementException(m)
 }
 
-case object MyLeaf extends MyTree {
+case object Leaf extends Tree {
   def value: Nothing = fail("An empty tree.")
-  def left: MyTree = fail("An empty tree.")
-  def right: MyTree = fail("An empty tree.")
+  def left: Tree = fail("An empty tree.")
+  def right: Tree = fail("An empty tree.")
   def size: Int = 0
 
   def isEmpty: Boolean = true
 }
 
-case class MyBranch(value: Int, 
-                    left: MyTree, 
-                    right: MyTree, 
-                    size: Int) extends MyTree {
+case class Branch(value: Int, 
+                    left: Tree, 
+                    right: Tree, 
+                    size: Int) extends Tree {
   def isEmpty: Boolean = false
 }
 
-object MyTree {
+object Tree {
 
   /**
    * An empty tree.
    */
-  def empty[Int]: MyTree = MyLeaf
+  def empty[Int]: Tree = Leaf
 
   /**
    * A smart constructor for tree's branch.
@@ -276,8 +299,8 @@ object MyTree {
    * Time - O(1)
    * Space - O(1)
    */
-  def make(x: Int, l: MyTree =MyLeaf, r: MyTree = MyLeaf): MyTree =
-    MyBranch(x, l, r, l.size + r.size + 1)
+  def make(x: Int, l: Tree =Leaf, r: Tree = Leaf): Tree =
+    Branch(x, l, r, l.size + r.size + 1)
 
   /**
    * Creates a new balanced tree from given sorted list 'l'.
@@ -289,13 +312,13 @@ object MyTree {
    * Time - O(n)
    * Space - O(log n)
    */
-  def fromSortedList(l: List[Int]): MyTree = {
-    def loop(ll: List[Int], n: Int): (List[Int], MyTree) = 
-      if (n == 0) (ll, MyTree.empty)
+  def fromSortedList(l: List[Int]): Tree = {
+    def loop(ll: List[Int], n: Int): (List[Int], Tree) = 
+      if (n == 0) (ll, Tree.empty)
       else {
         val (lt, left) = loop(ll, n/2)
         val (rt, right) = loop(lt.tail, n-1-n/2)
-        (rt, MyTree.make(lt.head, left, right))
+        (rt, Tree.make(lt.head, left, right))
       }
 
     loop(l, l.length)._2
