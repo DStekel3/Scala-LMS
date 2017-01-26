@@ -2,7 +2,7 @@
 
 Use the "sbt run" command to run your scala program and compile code using LMS.
 
-# THIS IS THE README OF SCALA/LMS:
+# THIS IS THE README OF SCALA-LMS:
 
 This description contains all the information you need to know in order to understand this project:
 
@@ -13,7 +13,5 @@ This description contains all the information you need to know in order to under
     1. Binary Search:       search.scala
     2. Binary Tree Lookup:  treesearch.scala
     3. Rabin-Karp:          RabinKarp.scala
-    For more information on the implementation of an algorithm, see its corresponding file.
 
-
-    
+For more information on the implementation of an algorithm, see its corresponding file
