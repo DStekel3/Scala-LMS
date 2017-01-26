@@ -3,10 +3,12 @@ import scala.collection.mutable.ListBuffer
 
 /**
  * This code is based on Scalacaster project, https://github.com/vkostyukov/scalacaster
- *which is written by Vladimir Kostyukov, http://vkostyukov.ru
- *
+ * which is written by Vladimir Kostyukov, http://vkostyukov.ru
+ * Since the original implementation works with a generic type, which LMS does not know to to stage, we needed to make adjustments.
+ * The adjusted Scala-implementation is shown at the bottom of this file. This implementation is being used as the unstaged version.
+ * The implementation which works with staged code. This implementation generated code, which is being used as the staged version.
+ * You can find the generated code in the "/out" folder.
  * Binary Search Tree http://en.wikipedia.org/wiki/Binary_search_tree
- * -Notes-
 **/
 
 object TreeSearch extends IO {
@@ -117,9 +119,9 @@ object TreeSearch extends IO {
   }
 }
 
-// Staged implementation of Tree
+// Staged implementation of the Binary Tree
 trait StagedVersion extends Dsl{
-  abstract sealed class Tree{
+  abstract sealed class Tree {
   /**
    * The value of this tree.
    */
@@ -217,14 +219,10 @@ object Tree {
 }
 }
 
-/**
- * This code is based on Scalacaster project, https://github.com/vkostyukov/scalacaster
- *which is written by Vladimir Kostyukov, http://vkostyukov.ru
- *
- * Binary Search Tree http://en.wikipedia.org/wiki/Binary_search_tree
- * -Notes-
-**/
 
+/*
+* Implementation of the Binary Tree, which creates a balanced tree from a list of integers.
+*/
 abstract sealed class Tree{
   /**
    * The value of this tree.
