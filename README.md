@@ -1,17 +1,25 @@
-"# Scala-LMS" 
+# Scala-LMS
 
-Use the "sbt run" command to run your scala program and compile code using LMS.
+Lightweight Modular Staging (LMS) is a Scala library for multi-stage generative programming. It allows for writing high-level, generic programs that generate specialized and fast low-level code.
 
-# THIS IS THE README OF SCALA-LMS:
+One particularly interesting use case is staging functions for which some arguments are fixed; this allows for an optimized function to be generated. In this project, we investigate the performance of several such optimized staged functions.
 
-This description contains all the information you need to know in order to understand this project:
+## How to build
 
-- main.scala is the file which is being run when you run this project. 
-  Within this file, you can see the method "main", which contains serval ".run()"-calls. 
+1. Download and install the [Java Development Kit (JDK)](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
+
+2. Install the [sbt](http://www.scala-sbt.org/) build tool.
+
+3. Run the `sbt run` command to run the project.
+
+## Project layout
+
+- `main.scala` is the file which is being run when you run this project. 
+  Within this file, you can see the method `main()`, which contains serval `.run()`-calls. 
   Each call triggers an experiment of one of the three implemented algorithms. 
 - Each algorithm is implemented in a different file:
-    1. Binary Search:       search.scala
-    2. Binary Tree Lookup:  treesearch.scala
-    3. Rabin-Karp:          RabinKarp.scala
+    1. Binary Search:       `search.scala`
+    2. Binary Tree Lookup:  `treesearch.scala`
+    3. Rabin-Karp:          `RabinKarp.scala`
 
-For more information on the implementation of an algorithm, see its corresponding file
+For more information on the implementation of an algorithm, see its corresponding file.
