@@ -1,6 +1,14 @@
 import scala.lms.common._
 import scala.collection.mutable.ListBuffer
 
+/**
+ * This code is based on Scalacaster project, https://github.com/vkostyukov/scalacaster
+ *which is written by Vladimir Kostyukov, http://vkostyukov.ru
+ *
+ * Binary Search Tree http://en.wikipedia.org/wiki/Binary_search_tree
+ * -Notes-
+**/
+
 object TreeSearch extends IO {
   val under = "TreeSearch"
 
