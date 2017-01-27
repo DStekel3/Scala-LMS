@@ -6,6 +6,6 @@ object Main {
     println("\nRunning binary tree search algorithm...")
     TreeSearch.run();
     println("\nRunning binary search algorithm...")
-    Search.run()
+    BinarySearch.run()
   }
 }
